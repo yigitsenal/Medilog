@@ -55,6 +55,10 @@ dependencies:
 
   # Biometric authentication
   local_auth: ^2.1.8
+  geolocator: ^14.0.1
+  geofence_service: ^6.0.0+1
+  google_maps_flutter: ^2.12.3
+  geocoding: ^4.0.0
 
   # Background tasks - removed workmanager due to compatibility issues
   # workmanager: ^0.5.2

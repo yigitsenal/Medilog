@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
+import 'services/location_service.dart'; // Konum servisini ekleyin
 import 'screens/home_screen.dart';
 
 void main() async {

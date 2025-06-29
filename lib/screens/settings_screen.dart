@@ -3,6 +3,9 @@ import 'package:flutter/cupertino.dart';
 import '../models/user_preferences.dart';
 import '../services/settings_service.dart';
 import '../services/biometric_service.dart';
+import '../services/location_service.dart'; // Konum servisini ekleyin
+
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
@@ -16,8 +19,11 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen>
     with TickerProviderStateMixin {
   final SettingsService _settingsService = SettingsService();
+  final LocationService _locationService = LocationService(); // Konum servisini başlatın
   UserPreferences? _userPreferences;
   bool _isLoading = true;
+  bool _isGeofenceEnabled = false;
+  bool _isSettingHome = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -33,6 +39,119 @@ class _SettingsScreenState extends State<SettingsScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _loadUserPreferences();
+    _loadLocationSettings();
+  }
+
+  Future<void> _loadLocationSettings() async {
+    final isEnabled = await _locationService.isGeofenceEnabled();
+    setState(() {
+      _isGeofenceEnabled = isEnabled;
+    });
+  }
+
+  Future<void> _toggleGeofence(bool value) async {
+    if (value) {
+      // Konum iznini kontrol et
+      var locationStatus = await Permission.location.status;
+      if (locationStatus.isDenied || locationStatus.isPermanentlyDenied) {
+        _showPermissionDialog(
+          'Konum İzni Gerekiyor',
+          'Evden ayrılma hatırlatıcısını kullanmak için lütfen konum izni verin.',
+        );
+        return;
+      }
+
+      // Fiziksel aktivite iznini kontrol et (Android)
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        var activityStatus = await Permission.activityRecognition.status;
+        if (activityStatus.isPermanentlyDenied) {
+          _showPermissionDialog(
+            'Fiziksel Aktivite İzni',
+            'Bu özellik, pil kullanımını optimize etmek için fiziksel aktivite izninize ihtiyaç duyar. Lütfen uygulama ayarlarından bu izni etkinleştirin.',
+          );
+          return;
+        }
+      }
+    }
+
+    try {
+      await _locationService.toggleGeofence(value);
+      if (mounted) {
+        setState(() {
+          _isGeofenceEnabled = value;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value
+                ? 'Konum hatırlatıcısı açıldı.'
+                : 'Konum hatırlatıcısı kapatıldı.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('İşlem başarısız: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPermissionDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              openAppSettings();
+              Navigator.pop(context);
+            },
+            child: const Text('Ayarları Aç'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setHomeLocation() async {
+    setState(() {
+      _isSettingHome = true;
+    });
+    try {
+      await _locationService.setHomeLocation();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ev konumu başarıyla ayarlandı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Konum ayarlanırken hata oluştu: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isSettingHome = false;
+      });
+    }
   }
 
   @override
@@ -293,6 +412,39 @@ class _SettingsScreenState extends State<SettingsScreen>
             (value) => _updatePreferences(
               _userPreferences!.copyWith(biometricAuth: value),
             ),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        _buildSettingsGroup('Konum', Icons.location_on, [
+          _buildSwitchTile(
+            'Evden Ayrılırken Hatırlat',
+            'Konum tabanlı hatırlatıcıları etkinleştir',
+            _isGeofenceEnabled,
+            _toggleGeofence,
+          ),
+          _buildListTile(
+            'Ev Konumunu Ayarla',
+            'Hatırlatıcı için evinizi kaydedin',
+            Icons.home,
+            _setHomeLocation,
+            isDestructive: _isSettingHome, // Butonun durumunu belirtmek için
+          ),
+          // --- TEST BUTONU ---
+          _buildListTile(
+            'Test Bildirimi Gönder',
+            'Evden çıkış bildirimini test et',
+            Icons.notification_important,
+            () async {
+              await _locationService.sendTestNotification();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Test bildirimi gönderildi.'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              }
+            },
           ),
         ]),
         const SizedBox(height: 16),
