@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1E88E5), Color(0xFF42A5F5), Color(0xFF90CAF9)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
           ),
         ),
         child: SafeArea(

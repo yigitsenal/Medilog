@@ -62,7 +62,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Veriler yüklenirken hata oluştu: $e'),
-            backgroundColor: Colors.red,
+backgroundColor: Color(0xFF00A8E8),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -100,9 +100,9 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                   ? 'İlaç aktif edildi'
                   : 'İlaç devre dışı bırakıldı',
             ),
-            backgroundColor: updatedMedication.isActive
-                ? Colors.green
-                : Colors.orange,
+backgroundColor: updatedMedication.isActive
+                ? Color(0xFF00A8E8)
+                : Color(0xFF0077BE),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -313,7 +313,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA), Color(0xFFAB47BC)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
           ),
         ),
         child: SafeArea(
@@ -340,12 +340,12 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE)],
           ),
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6A1B9A).withOpacity(0.3),
+              color: const Color(0xFF00A8E8).withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),

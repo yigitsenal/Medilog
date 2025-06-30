@@ -308,7 +308,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF4CAF50), Color(0xFF66BB6A), Color(0xFF81C784)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
           ),
         ),
         child: SafeArea(
@@ -467,10 +467,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50).withOpacity(0.1),
+            color: const Color(0xFF00A8E8).withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+          child: Icon(icon, color: const Color(0xFF00A8E8), size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -506,7 +506,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFF4CAF50)),
+          prefixIcon: Icon(icon, color: const Color(0xFF00A8E8)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
           labelStyle: TextStyle(color: Colors.grey[700]),
@@ -527,7 +527,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         value: _frequency,
         onChanged: _onFrequencyChanged,
         decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.repeat, color: Color(0xFF4CAF50)),
+          prefixIcon: Icon(Icons.repeat, color: Color(0xFF00A8E8)),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(16),
         ),
@@ -557,7 +557,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Color(0xFF4CAF50)),
+              icon: const Icon(Icons.add_circle, color: Color(0xFF00A8E8)),
               onPressed: () => _selectTime(_selectedTimes.length),
             ),
           ],

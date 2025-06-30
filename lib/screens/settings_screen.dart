@@ -202,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFF5E6D3), Color(0xFFE8D5C4), Color(0xFFD4C2A8)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
           ),
         ),
         child: SafeArea(
@@ -270,7 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFF5E6D3), Color(0xFFE8D5C4)],
+              colors: [Color(0xFF00A8E8), Color(0xFF0077BE)],
             ),
           ),
         ),

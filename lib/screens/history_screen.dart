@@ -241,7 +241,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFE91E63), Color(0xFFF06292), Color(0xFFF8BBD9)],
+            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
           ),
         ),
         child: SafeArea(

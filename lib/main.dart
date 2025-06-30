@@ -53,9 +53,15 @@ class MedilogApp extends StatelessWidget {
     return MaterialApp(
       title: 'Medilog',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7D32), // Medical green
-          brightness: Brightness.light,
+colorScheme: const ColorScheme.light(
+          primary: Color(0xFF00A8E8),
+          secondary: Color(0xFF007EA7),
+          background: Color(0xFFF0F8FF),
+          surface: Color(0xFFF0F8FF),
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onBackground: Colors.black87,
+          onSurface: Colors.black87,
         ),
         useMaterial3: true,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
