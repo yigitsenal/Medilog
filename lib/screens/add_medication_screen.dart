@@ -133,22 +133,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: Colors.white,
-              hourMinuteShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              dayPeriodShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+
     );
 
     if (picked != null) {
@@ -180,19 +165,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+
     );
 
     if (picked != null) {
@@ -304,11 +277,14 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -467,10 +443,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A8E8).withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF00A8E8), size: 20),
+          child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -506,7 +482,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFF00A8E8)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
           labelStyle: TextStyle(color: Colors.grey[700]),
@@ -526,8 +502,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       child: DropdownButtonFormField<String>(
         value: _frequency,
         onChanged: _onFrequencyChanged,
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.repeat, color: Color(0xFF00A8E8)),
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.repeat, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(16),
         ),
@@ -557,7 +533,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Color(0xFF00A8E8)),
+              icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
               onPressed: () => _selectTime(_selectedTimes.length),
             ),
           ],
@@ -570,8 +546,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             for (int i = 0; i < _selectedTimes.length; i++)
               Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                  gradient: LinearGradient(
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
@@ -644,11 +620,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF4CAF50) : Colors.grey[100],
+                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF4CAF50)
+                      ? Theme.of(context).colorScheme.primary
                       : Colors.grey[300]!,
                 ),
               ),
@@ -694,10 +670,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.loop, color: Color(0xFF4CAF50)),
+            child: Icon(Icons.loop, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -722,7 +698,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           Switch(
             value: _isContinuous,
             onChanged: (value) => setState(() => _isContinuous = value),
-            activeColor: const Color(0xFF4CAF50),
+            activeColor: Theme.of(context).colorScheme.primary,
           ),
         ],
       ),
@@ -773,7 +749,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           children: [
             Row(
               children: [
-                Icon(icon, color: const Color(0xFF4CAF50), size: 18),
+                Icon(icon, color: Theme.of(context).colorScheme.primary, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -805,13 +781,13 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget _buildSaveButton() {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+        gradient: LinearGradient(
+          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(0.3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),

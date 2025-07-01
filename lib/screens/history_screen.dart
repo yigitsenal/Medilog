@@ -129,19 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       initialDate: _selectedDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+       
     );
 
     if (picked != null && picked != _selectedDate) {
@@ -167,19 +155,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             start: DateTime.now().subtract(const Duration(days: 7)),
             end: DateTime.now(),
           ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+       
     );
 
     if (picked != null) {
@@ -237,11 +213,14 @@ class _HistoryScreenState extends State<HistoryScreen>
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -357,12 +336,12 @@ class _HistoryScreenState extends State<HistoryScreen>
     int pendingLogs,
   ) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE91E63)),
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
             ),
             SizedBox(height: 16),
             Text(
@@ -391,24 +370,24 @@ class _HistoryScreenState extends State<HistoryScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFE91E63).withOpacity(0.1),
-            const Color(0xFFF06292).withOpacity(0.1),
+            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            Theme.of(context).colorScheme.secondary.withOpacity(0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE91E63).withOpacity(0.2)),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFE91E63).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.calendar_today,
-              color: Color(0xFFE91E63),
+              color: Theme.of(context).colorScheme.primary,
               size: 24,
             ),
           ),
@@ -417,11 +396,11 @@ class _HistoryScreenState extends State<HistoryScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Görüntülenen Tarih',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFFE91E63),
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -597,8 +576,8 @@ class _HistoryScreenState extends State<HistoryScreen>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE91E63), Color(0xFFF06292)],
+                    gradient: LinearGradient(
+                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                     ),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -629,13 +608,13 @@ class _HistoryScreenState extends State<HistoryScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFFE91E63).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.history,
               size: 80,
-              color: Color(0xFFE91E63),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 24),
@@ -736,7 +715,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                           ? 'Aç karına'
                           : 'Tok karına',
                       style: TextStyle(
-                        color: const Color(0xFFE91E63),
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

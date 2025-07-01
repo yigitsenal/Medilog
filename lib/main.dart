@@ -3,6 +3,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'constants/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'services/location_service.dart'; // Konum servisini ekleyin
@@ -52,34 +53,7 @@ class MedilogApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Medilog',
-      theme: ThemeData(
-colorScheme: const ColorScheme.light(
-          primary: Color(0xFF00A8E8),
-          secondary: Color(0xFF007EA7),
-          background: Color(0xFFF0F8FF),
-          surface: Color(0xFFF0F8FF),
-          onPrimary: Colors.white,
-          onSecondary: Colors.white,
-          onBackground: Colors.black87,
-          onSurface: Colors.black87,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
-        cardTheme: const CardThemeData(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
