@@ -9,10 +9,10 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 flutter_native_splash:
   # Beyaz arka plan (görseldeki gibi)
   color: "#ffffff"
-  
+
   # Mevcut splash logo'yu kullan
   image: assets/images/splash.png
-  
+
   # Android 12+ splash screen
   android_12:
     image: assets/images/splash12.png
@@ -20,11 +20,11 @@ flutter_native_splash:
     fullscreen: true
 
     #icon_background_color: "#63C5DA"
-    
+
   # Dark theme için koyu arka plan
   color_dark: "#042a49"
   image_dark: assets/images/splash.png
-  
+
   # Web platformu için devre dışı
   web: false
 
