@@ -6,7 +6,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'constants/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
-import 'services/location_service.dart';
 import 'services/localization_service.dart';
 import 'screens/home_screen.dart';
 
@@ -51,7 +50,8 @@ class MedilogApp extends StatefulWidget {
   const MedilogApp({super.key});
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _MedilogAppState? state = context.findAncestorStateOfType<_MedilogAppState>();
+    _MedilogAppState? state = context
+        .findAncestorStateOfType<_MedilogAppState>();
     state?.setLocale(newLocale);
   }
 
@@ -69,14 +69,24 @@ class _MedilogAppState extends State<MedilogApp> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _initializeLocale();
+  }
+
+  Future<void> _initializeLocale() async {
+    final settingsService = SettingsService();
+    await settingsService.initialize();
+    final languageCode = await settingsService.currentLanguage;
+
+    if (mounted) {
+      setLocale(Locale(languageCode, ''));
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final settingsService = SettingsService();
-    settingsService.initialize().then((_) {
-      settingsService.currentLanguage.then((languageCode) {
-        setLocale(Locale(languageCode, ''));
-      });
-    });
   }
 
   @override
@@ -92,10 +102,7 @@ class _MedilogAppState extends State<MedilogApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
-        const Locale('en', ''),
-        const Locale('tr', ''),
-      ],
+      supportedLocales: [const Locale('en', ''), const Locale('tr', '')],
       debugShowCheckedModeBanner: false,
     );
   }

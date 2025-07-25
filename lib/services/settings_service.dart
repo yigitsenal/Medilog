@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui' as ui;
 import '../models/user_preferences.dart';
 
 class SettingsService {
@@ -24,6 +25,36 @@ class SettingsService {
 
   Future<void> initialize() async {
     _prefs ??= await SharedPreferences.getInstance();
+
+    // İlk açılışta sistem dilini kontrol et ve ayarla
+    await _initializeLanguageFromSystem();
+  }
+
+  Future<void> _initializeLanguageFromSystem() async {
+    // Eğer daha önce dil ayarı yapılmamışsa, sistem dilini kullan
+    String? savedLanguage = _prefs?.getString(_languageKey);
+
+    if (savedLanguage == null) {
+      // Sistem dilini al
+      String systemLanguage = _getSystemLanguage();
+      await _prefs?.setString(_languageKey, systemLanguage);
+    }
+  }
+
+  String _getSystemLanguage() {
+    // Sistem dilini al
+    String systemLocale = ui.PlatformDispatcher.instance.locale.languageCode;
+
+    // Desteklenen diller: tr, en
+    switch (systemLocale) {
+      case 'tr':
+        return 'tr';
+      case 'en':
+        return 'en';
+      default:
+        // Desteklenmeyen diller için İngilizce varsayılan
+        return 'en';
+    }
   }
 
   Future<UserPreferences> getUserPreferences() async {
@@ -36,7 +67,7 @@ class SettingsService {
       reminderTone: _prefs!.getString(_reminderToneKey) ?? 'default',
       snoozeMinutes: _prefs!.getInt(_snoozeMinutesKey) ?? 5,
       darkMode: _prefs!.getBool(_darkModeKey) ?? false,
-      language: _prefs!.getString(_languageKey) ?? 'tr',
+      language: _prefs!.getString(_languageKey) ?? _getSystemLanguage(),
       showMedicationImages: _prefs!.getBool(_showMedicationImagesKey) ?? true,
       dailyGoalCompliance: _prefs!.getInt(_dailyGoalComplianceKey) ?? 80,
       weeklyReports: _prefs!.getBool(_weeklyReportsKey) ?? true,
@@ -136,7 +167,7 @@ class SettingsService {
 
   Future<String> get currentLanguage async {
     await initialize();
-    return _prefs!.getString(_languageKey) ?? 'tr';
+    return _prefs!.getString(_languageKey) ?? _getSystemLanguage();
   }
 
   Future<String> get userName async {
