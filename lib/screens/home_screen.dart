@@ -13,7 +13,7 @@ import 'statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
-  
+
   const HomeScreen({super.key, this.onSettingsChanged});
 
   @override
@@ -235,11 +235,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             _buildHeader(),
             const SizedBox(height: 30),
+            _buildTodaysSchedule(),
+            const SizedBox(height: 30),
             _buildQuickStats(),
             const SizedBox(height: 30),
             _buildQuickActions(),
-            const SizedBox(height: 30),
-            _buildTodaysSchedule(),
             const SizedBox(height: 100), // Space for FAB
           ],
         ),
@@ -249,7 +249,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final formatter = DateFormat('d MMMM yyyy, EEEE', AppLocalizations.of(context)!.locale.languageCode);
+    final formatter = DateFormat(
+      'd MMMM yyyy, EEEE',
+      AppLocalizations.of(context)!.locale.languageCode,
+    );
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -289,7 +292,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     Text(
-                      AppLocalizations.of(context)!.translate('your_health_companion'),
+                      AppLocalizations.of(
+                        context,
+                      )!.translate('your_health_companion'),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.8),
@@ -468,7 +473,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged),
+                    builder: (context) => SettingsScreen(
+                      onSettingsChanged: widget.onSettingsChanged,
+                    ),
                   ),
                 ),
               ),
@@ -623,7 +630,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 10),
           Text(
-            AppLocalizations.of(context)!.translate('no_medications_scheduled_for_today'),
+            AppLocalizations.of(
+              context,
+            )!.translate('no_medications_scheduled_for_today'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -775,8 +784,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           const SizedBox(width: 6),
                           Text(
                             medication.stomachCondition == 'full'
-                                ? AppLocalizations.of(context)!.translate('with_food')
-                                : AppLocalizations.of(context)!.translate('empty_stomach'),
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.translate('with_food')
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.translate('empty_stomach'),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -794,7 +807,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: ElevatedButton.icon(
                           onPressed: () => _markAsTaken(log),
                           icon: const Icon(Icons.check, size: 18),
-                          label: Text(AppLocalizations.of(context)!.translate('i_took_it')),
+                          label: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.translate('i_took_it'),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -811,7 +828,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: OutlinedButton.icon(
                           onPressed: () => _markAsSkipped(log),
                           icon: const Icon(Icons.close, size: 18),
-                          label: Text(AppLocalizations.of(context)!.translate('skip')),
+                          label: Text(
+                            AppLocalizations.of(context)!.translate('skip'),
+                          ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.orange,
                             side: const BorderSide(color: Colors.orange),
@@ -894,28 +913,54 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home, AppLocalizations.of(context)!.translate('home'), true, () {}),
-            _buildNavItem(Icons.list_alt, AppLocalizations.of(context)!.translate('my_medications'), false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MedicationListScreen(),
-                ),
-              ).then((_) => _loadTodayData());
-            }),
+            _buildNavItem(
+              Icons.home,
+              AppLocalizations.of(context)!.translate('home'),
+              true,
+              () {},
+            ),
+            _buildNavItem(
+              Icons.list_alt,
+              AppLocalizations.of(context)!.translate('my_medications'),
+              false,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MedicationListScreen(),
+                  ),
+                ).then((_) => _loadTodayData());
+              },
+            ),
             const SizedBox(width: 40), // Space for FAB
-            _buildNavItem(Icons.history, AppLocalizations.of(context)!.translate('history'), false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HistoryScreen()),
-              );
-            }),
-            _buildNavItem(Icons.settings, AppLocalizations.of(context)!.translate('settings'), false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged)),
-              );
-            }),
+            _buildNavItem(
+              Icons.history,
+              AppLocalizations.of(context)!.translate('history'),
+              false,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildNavItem(
+              Icons.settings,
+              AppLocalizations.of(context)!.translate('settings'),
+              false,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsScreen(
+                      onSettingsChanged: widget.onSettingsChanged,
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
