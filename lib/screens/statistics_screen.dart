@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
+import '../services/localization_service.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -78,7 +79,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('İstatistikler yüklenirken hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_loading_statistics') + ': $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -155,9 +156,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
-        title: const Text(
-          'İstatistikler',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.translate('statistics'),
+          style: const TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -192,9 +193,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       child: Row(
         children: [
-          _buildPeriodButton('Son 7 Gün', 'week'),
-          _buildPeriodButton('Son Ay', 'month'),
-          _buildPeriodButton('Son Yıl', 'year'),
+          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_7_days'), 'week'),
+          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_month'), 'month'),
+          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_year'), 'year'),
         ],
       ),
     );
@@ -242,7 +243,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       children: [
         Expanded(
           child: _buildOverviewCard(
-            'Toplam',
+            AppLocalizations.of(context)!.translate('total'),
             totalLogs.toString(),
             Icons.medication,
             const Color(0xFF2196F3),
@@ -251,7 +252,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildOverviewCard(
-            'İçildi',
+            AppLocalizations.of(context)!.translate('taken'),
             takenLogs.toString(),
             Icons.check_circle,
             const Color(0xFF4CAF50),
@@ -260,7 +261,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildOverviewCard(
-            'Uyum',
+            AppLocalizations.of(context)!.translate('compliance'),
             '%$complianceRate',
             Icons.trending_up,
             const Color(0xFF9C27B0),
@@ -348,9 +349,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Uyum Analizi',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.translate('compliance_analysis'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -359,21 +360,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: 20),
           // Simple progress bars instead of pie chart
           _buildProgressBar(
-            'İçildi',
+            AppLocalizations.of(context)!.translate('taken'),
             takenPercentage,
             const Color(0xFF4CAF50),
             takenLogs,
           ),
           const SizedBox(height: 12),
           _buildProgressBar(
-            'Atlandı',
+            AppLocalizations.of(context)!.translate('skipped'),
             skippedPercentage,
             const Color(0xFFFF9800),
             skippedLogs,
           ),
           const SizedBox(height: 12),
           _buildProgressBar(
-            'Bekliyor',
+            AppLocalizations.of(context)!.translate('pending'),
             pendingPercentage,
             const Color(0xFF2196F3),
             pendingLogs,
@@ -466,9 +467,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Günlük Detay',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.translate('daily_detail'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -476,9 +477,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
           const SizedBox(height: 16),
           if (sortedDays.isEmpty)
-            const Center(
+            Center(
               child: Text(
-                'Bu dönemde veri bulunamadı',
+                AppLocalizations.of(context)!.translate('no_data_found_for_this_period'),
                 style: TextStyle(color: Colors.grey),
               ),
             )
@@ -566,9 +567,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'İlaç Bazında Analiz',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.translate('medication_analysis'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -576,9 +577,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
           const SizedBox(height: 16),
           if (medicationLogs.isEmpty)
-            const Center(
+            Center(
               child: Text(
-                'Bu dönemde veri bulunamadı',
+                AppLocalizations.of(context)!.translate('no_data_found_for_this_period'),
                 style: TextStyle(color: Colors.grey),
               ),
             )
@@ -611,7 +612,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'İlaç #${entry.key}',
+                            AppLocalizations.of(context)!.translate('medication') + ' #${entry.key}',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

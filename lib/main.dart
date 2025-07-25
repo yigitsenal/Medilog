@@ -6,7 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'constants/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
-import 'services/location_service.dart'; // Konum servisini ekleyin
+import 'services/location_service.dart';
+import 'services/localization_service.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -46,15 +47,55 @@ Future<void> _requestNotificationPermissions() async {
   }
 }
 
-class MedilogApp extends StatelessWidget {
+class MedilogApp extends StatefulWidget {
   const MedilogApp({super.key});
+
+  static void setLocale(BuildContext context, Locale newLocale) {
+    _MedilogAppState? state = context.findAncestorStateOfType<_MedilogAppState>();
+    state?.setLocale(newLocale);
+  }
+
+  @override
+  State<MedilogApp> createState() => _MedilogAppState();
+}
+
+class _MedilogAppState extends State<MedilogApp> {
+  Locale? _locale;
+
+  void setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settingsService = SettingsService();
+    settingsService.initialize().then((_) {
+      settingsService.currentLanguage.then((languageCode) {
+        setLocale(Locale(languageCode, ''));
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Medilog',
       theme: AppTheme.lightTheme,
+      locale: _locale,
       home: const HomeScreen(),
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', ''),
+        const Locale('tr', ''),
+      ],
       debugShowCheckedModeBanner: false,
     );
   }

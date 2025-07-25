@@ -4,6 +4,7 @@ import '../models/medication.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/localization_service.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'history_screen.dart';
@@ -248,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final formatter = DateFormat('d MMMM yyyy, EEEE', 'tr_TR');
+    final formatter = DateFormat('d MMMM yyyy, EEEE', AppLocalizations.of(context)!.locale.languageCode);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -279,16 +280,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Medilog',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.translate('medilog'),
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
-                      'Sağlık Takip Uygulamanız',
+                      AppLocalizations.of(context)!.translate('your_health_companion'),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.8),
@@ -341,9 +342,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Bugünkü Durum',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.translate('todays_status'),
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -354,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildStatCard(
-                'İçildi',
+                AppLocalizations.of(context)!.translate('taken'),
                 takenCount,
                 Colors.green,
                 Icons.check_circle,
@@ -363,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Atlandı',
+                AppLocalizations.of(context)!.translate('skipped'),
                 skippedCount,
                 Colors.orange,
                 Icons.cancel,
@@ -372,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Bekliyor',
+                AppLocalizations.of(context)!.translate('pending'),
                 pendingCount,
                 Colors.blue,
                 Icons.schedule,
@@ -434,9 +435,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Hızlı Erişim',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.translate('quick_actions'),
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -447,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'İstatistikler',
+                AppLocalizations.of(context)!.translate('statistics'),
                 Icons.analytics,
                 Colors.purple,
                 () => Navigator.push(
@@ -461,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'Ayarlar',
+                AppLocalizations.of(context)!.translate('settings'),
                 Icons.settings,
                 Colors.indigo,
                 () => Navigator.push(
@@ -479,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'Geçmiş',
+                AppLocalizations.of(context)!.translate('history'),
                 Icons.history,
                 Colors.teal,
                 () => Navigator.push(
@@ -493,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'İlaç Listesi',
+                AppLocalizations.of(context)!.translate('medication_list'),
                 Icons.list_alt,
                 Colors.orange,
                 () => Navigator.push(
@@ -565,9 +566,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Bugünkü İlaçlar',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.translate('todays_medications'),
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -613,7 +614,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 20),
           Text(
-            'Bugün İlaç Yok',
+            AppLocalizations.of(context)!.translate('no_medications_today'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -622,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 10),
           Text(
-            'Henüz bugün için planlanmış ilaç bulunmuyor. İlaç eklemek için + butonuna dokunun.',
+            AppLocalizations.of(context)!.translate('no_medications_scheduled_for_today'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -644,16 +645,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Color cardColor = Colors.white;
     Color accentColor = Colors.blue;
     IconData statusIcon = Icons.schedule;
-    String statusText = 'Bekliyor';
+    String statusText = AppLocalizations.of(context)!.translate('pending');
 
     if (log.isTaken) {
       accentColor = Colors.green;
       statusIcon = Icons.check_circle;
-      statusText = 'İçildi';
+      statusText = AppLocalizations.of(context)!.translate('taken');
     } else if (log.isSkipped) {
       accentColor = Colors.orange;
       statusIcon = Icons.cancel;
-      statusText = 'Atlandı';
+      statusText = AppLocalizations.of(context)!.translate('skipped');
     }
 
     return Container(
@@ -774,8 +775,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           const SizedBox(width: 6),
                           Text(
                             medication.stomachCondition == 'full'
-                                ? 'Yemekle'
-                                : 'Aç karnına',
+                                ? AppLocalizations.of(context)!.translate('with_food')
+                                : AppLocalizations.of(context)!.translate('empty_stomach'),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -793,7 +794,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: ElevatedButton.icon(
                           onPressed: () => _markAsTaken(log),
                           icon: const Icon(Icons.check, size: 18),
-                          label: const Text('İçtim'),
+                          label: Text(AppLocalizations.of(context)!.translate('i_took_it')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -810,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: OutlinedButton.icon(
                           onPressed: () => _markAsSkipped(log),
                           icon: const Icon(Icons.close, size: 18),
-                          label: const Text('Atla'),
+                          label: Text(AppLocalizations.of(context)!.translate('skip')),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.orange,
                             side: const BorderSide(color: Colors.orange),
@@ -893,8 +894,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home, 'Ana Sayfa', true, () {}),
-            _buildNavItem(Icons.list_alt, 'İlaçlarım', false, () {
+            _buildNavItem(Icons.home, AppLocalizations.of(context)!.translate('home'), true, () {}),
+            _buildNavItem(Icons.list_alt, AppLocalizations.of(context)!.translate('my_medications'), false, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -903,13 +904,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ).then((_) => _loadTodayData());
             }),
             const SizedBox(width: 40), // Space for FAB
-            _buildNavItem(Icons.history, 'Geçmiş', false, () {
+            _buildNavItem(Icons.history, AppLocalizations.of(context)!.translate('history'), false, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HistoryScreen()),
               );
             }),
-            _buildNavItem(Icons.settings, 'Ayarlar', false, () {
+            _buildNavItem(Icons.settings, AppLocalizations.of(context)!.translate('settings'), false, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged)),

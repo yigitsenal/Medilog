@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/medication.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/localization_service.dart';
 import 'add_medication_screen.dart';
 
 class MedicationListScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Veriler yüklenirken hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_loading_data') + ': $e'),
 backgroundColor: Color(0xFF00A8E8),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -97,8 +98,8 @@ backgroundColor: Color(0xFF00A8E8),
           SnackBar(
             content: Text(
               updatedMedication.isActive
-                  ? 'İlaç aktif edildi'
-                  : 'İlaç devre dışı bırakıldı',
+                  ? AppLocalizations.of(context)!.translate('medication_activated')
+                  : AppLocalizations.of(context)!.translate('medication_deactivated'),
             ),
 backgroundColor: updatedMedication.isActive
                 ? Color(0xFF00A8E8)
@@ -114,7 +115,7 @@ backgroundColor: updatedMedication.isActive
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -142,7 +143,7 @@ backgroundColor: updatedMedication.isActive
               child: const Icon(Icons.delete, color: Colors.red),
             ),
             const SizedBox(width: 12),
-            const Text('İlaç Sil'),
+            Text(AppLocalizations.of(context)!.translate('delete_medication')),
           ],
         ),
         content: Column(
@@ -150,29 +151,29 @@ backgroundColor: updatedMedication.isActive
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${medication.name} ilacını silmek istediğinize emin misiniz?',
+              AppLocalizations.of(context)!.translate('are_you_sure_you_want_to_delete_this_medication').replaceFirst('{medicationName}', medication.name),
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Silme seçenekleri:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              AppLocalizations.of(context)!.translate('deletion_options'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '• Geçici Sil: İlaç gizlenir, geçmiş veriler korunur',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              AppLocalizations.of(context)!.translate('temporary_delete_description'),
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
-            const Text(
-              '• Kalıcı Sil: İlaç ve tüm veriler tamamen silinir',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              AppLocalizations.of(context)!.translate('permanent_delete_description'),
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('İptal'),
+            child: Text(AppLocalizations.of(context)!.translate('cancel')),
           ),
           Container(
             decoration: BoxDecoration(
@@ -183,9 +184,9 @@ backgroundColor: updatedMedication.isActive
             ),
             child: TextButton(
               onPressed: () => Navigator.pop(context, 'temporary'),
-              child: const Text(
-                'Geçici Sil',
-                style: TextStyle(color: Colors.white),
+              child: Text(
+                AppLocalizations.of(context)!.translate('temporary_delete'),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -199,9 +200,9 @@ backgroundColor: updatedMedication.isActive
             ),
             child: TextButton(
               onPressed: () => Navigator.pop(context, 'permanent'),
-              child: const Text(
-                'Kalıcı Sil',
-                style: TextStyle(color: Colors.white),
+              child: Text(
+                AppLocalizations.of(context)!.translate('permanent_delete'),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -222,8 +223,8 @@ backgroundColor: updatedMedication.isActive
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                'İlaç geçici olarak silindi (geçmiş veriler korundu)',
+              content: Text(
+                AppLocalizations.of(context)!.translate('medication_temporarily_deleted'),
               ),
               backgroundColor: Colors.orange,
               behavior: SnackBarBehavior.floating,
@@ -239,7 +240,7 @@ backgroundColor: updatedMedication.isActive
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('İlaç kalıcı olarak silindi'),
+              content: Text(AppLocalizations.of(context)!.translate('medication_permanently_deleted')),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -255,7 +256,7 @@ backgroundColor: updatedMedication.isActive
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -268,21 +269,21 @@ backgroundColor: updatedMedication.isActive
   }
 
   String _getFrequencyText(String frequency) {
-    const frequencyLabels = {
-      'daily': 'Günde bir kez',
-      'twice_daily': 'Günde iki kez',
-      'three_times_daily': 'Günde üç kez',
-      'weekly': 'Haftada birkaç kez',
-      'custom': 'Özel',
+    final Map<String, String> frequencyLabels = {
+      'daily': AppLocalizations.of(context)!.translate('once_a_day'),
+      'twice_daily': AppLocalizations.of(context)!.translate('twice_a_day'),
+      'three_times_daily': AppLocalizations.of(context)!.translate('three_times_a_day'),
+      'weekly': AppLocalizations.of(context)!.translate('several_times_a_week'),
+      'custom': AppLocalizations.of(context)!.translate('custom'),
     };
     return frequencyLabels[frequency] ?? frequency;
   }
 
   String _getStomachText(String condition) {
-    const conditionLabels = {
-      'either': 'Fark etmez',
-      'empty': 'Aç karına',
-      'full': 'Tok karına',
+    final Map<String, String> conditionLabels = {
+      'either': AppLocalizations.of(context)!.translate('does_not_matter'),
+      'empty': AppLocalizations.of(context)!.translate('empty_stomach'),
+      'full': AppLocalizations.of(context)!.translate('with_food'),
     };
     return conditionLabels[condition] ?? condition;
   }
@@ -363,7 +364,7 @@ backgroundColor: updatedMedication.isActive
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: const Icon(Icons.add, color: Colors.white, size: 28),
-          tooltip: 'Yeni İlaç Ekle',
+          tooltip: AppLocalizations.of(context)!.translate('add_new_medication'),
         ),
       ),
     );
@@ -389,16 +390,16 @@ backgroundColor: updatedMedication.isActive
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'İlaç Listesi',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.translate('medication_list'),
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 Text(
-                  '${_medications.length} ilaç kayıtlı',
+                  AppLocalizations.of(context)!.translate('medications_registered').replaceFirst('{count}', _medications.length.toString()),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.8),
@@ -433,7 +434,7 @@ backgroundColor: updatedMedication.isActive
             ),
             SizedBox(height: 16),
             Text(
-              'İlaçlar yükleniyor...',
+              'Loading medications...',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
@@ -480,9 +481,9 @@ backgroundColor: updatedMedication.isActive
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Henüz ilaç eklenmemiş',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.translate('no_medications_added_yet'),
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -490,7 +491,7 @@ backgroundColor: updatedMedication.isActive
           ),
           const SizedBox(height: 8),
           Text(
-            'Yeni ilaç eklemek için + butonuna tıklayın',
+            AppLocalizations.of(context)!.translate('click_plus_button_to_add_new_medication'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -526,14 +527,14 @@ backgroundColor: updatedMedication.isActive
                     horizontal: 24,
                     vertical: 16,
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.add, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        'İlk İlacımı Ekle',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.translate('add_my_first_medication'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -688,7 +689,7 @@ backgroundColor: updatedMedication.isActive
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Text('Düzenle'),
+                              Text(AppLocalizations.of(context)!.translate('edit')),
                             ],
                           ),
                         ),
@@ -719,8 +720,8 @@ backgroundColor: updatedMedication.isActive
                               const SizedBox(width: 12),
                               Text(
                                 medication.isActive
-                                    ? 'Devre Dışı Bırak'
-                                    : 'Aktif Et',
+                                    ? AppLocalizations.of(context)!.translate('deactivate')
+                                    : AppLocalizations.of(context)!.translate('activate'),
                               ),
                             ],
                           ),
@@ -742,7 +743,7 @@ backgroundColor: updatedMedication.isActive
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Text('Sil'),
+                              Text(AppLocalizations.of(context)!.translate('delete')),
                             ],
                           ),
                         ),
@@ -773,7 +774,7 @@ backgroundColor: updatedMedication.isActive
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Devre dışı',
+                          AppLocalizations.of(context)!.translate('inactive'),
                           style: TextStyle(
                             color: Colors.orange[700],
                             fontSize: 12,
@@ -795,9 +796,9 @@ backgroundColor: updatedMedication.isActive
                         size: 16,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Saatler:',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.translate('hours') + ':',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,

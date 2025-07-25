@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/medication.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/localization_service.dart';
 
 class AddMedicationScreen extends StatefulWidget {
   final Medication? medication;
@@ -43,20 +44,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     'custom',
   ];
 
-  final Map<String, String> _frequencyLabels = {
-    'daily': 'Günde bir kez',
-    'twice_daily': 'Günde iki kez',
-    'three_times_daily': 'Günde üç kez',
-    'weekly': 'Haftada birkaç kez',
-    'custom': 'Özel',
-  };
+  late Map<String, String> _frequencyLabels;
 
   final List<String> _stomachOptions = ['either', 'empty', 'full'];
-  final Map<String, String> _stomachLabels = {
-    'either': 'Fark etmez',
-    'empty': 'Aç karına',
-    'full': 'Tok karına',
-  };
+  late Map<String, String> _stomachLabels;
 
   @override
   void initState() {
@@ -86,6 +77,28 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
     _slideController.forward();
     _fadeController.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initializeLabels();
+  }
+
+  void _initializeLabels() {
+    _frequencyLabels = {
+      'daily': AppLocalizations.of(context)!.translate('once_a_day'),
+      'twice_daily': AppLocalizations.of(context)!.translate('twice_a_day'),
+      'three_times_daily': AppLocalizations.of(context)!.translate('three_times_a_day'),
+      'weekly': AppLocalizations.of(context)!.translate('several_times_a_week'),
+      'custom': AppLocalizations.of(context)!.translate('custom'),
+    };
+
+    _stomachLabels = {
+      'either': AppLocalizations.of(context)!.translate('does_not_matter'),
+      'empty': AppLocalizations.of(context)!.translate('empty_stomach'),
+      'full': AppLocalizations.of(context)!.translate('full_stomach'),
+    };
   }
 
   @override
@@ -187,7 +200,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (_selectedTimes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('En az bir saat seçmelisiniz'),
+          content: Text(AppLocalizations.of(context)!.translate('select_at_least_one_time')),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -202,7 +215,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (!_isContinuous && _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Bitiş tarihi seçmelisiniz'),
+          content: Text(AppLocalizations.of(context)!.translate('select_end_date')),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -224,7 +237,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       final notes = _notesController.text.trim();
 
       if (name.isEmpty || dosage.isEmpty) {
-        throw Exception('İlaç adı ve doz bilgisi gereklidir');
+        throw Exception(AppLocalizations.of(context)!.translate('medication_name_and_dosage_required'));
       }
 
       final medication = Medication(
@@ -255,7 +268,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -329,8 +342,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               children: [
                 Text(
                   widget.medication == null
-                      ? 'Yeni İlaç Ekle'
-                      : 'İlacı Düzenle',
+                      ? AppLocalizations.of(context)!.translate('add_new_medication')
+                      : AppLocalizations.of(context)!.translate('edit_medication'),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -339,8 +352,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 ),
                 Text(
                   widget.medication == null
-                      ? 'İlaç bilgilerini girin'
-                      : 'İlaç bilgilerini güncelleyin',
+                      ? AppLocalizations.of(context)!.translate('enter_medication_details')
+                      : AppLocalizations.of(context)!.translate('update_medication_details'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.8),
@@ -369,16 +382,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            _buildSectionTitle('İlaç Bilgileri', Icons.medication),
+            _buildSectionTitle(AppLocalizations.of(context)!.translate('medication_details'), Icons.medication),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _nameController,
-              label: 'İlaç Adı',
-              hint: 'Örn: Aspirin',
+              label: AppLocalizations.of(context)!.translate('medication_name'),
+              hint: AppLocalizations.of(context)!.translate('example_aspirin'),
               icon: Icons.local_pharmacy,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'İlaç adı gereklidir';
+                  return AppLocalizations.of(context)!.translate('medication_name_required');
                 }
                 return null;
               },
@@ -386,31 +399,31 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             const SizedBox(height: 16),
             _buildTextField(
               controller: _dosageController,
-              label: 'Doz',
-              hint: 'Örn: 500mg, 1 tablet',
+              label: AppLocalizations.of(context)!.translate('dosage'),
+              hint: AppLocalizations.of(context)!.translate('example_500mg'),
               icon: Icons.straighten,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Doz bilgisi gereklidir';
+                  return AppLocalizations.of(context)!.translate('dosage_required');
                 }
                 return null;
               },
             ),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Kullanım Sıklığı', Icons.schedule),
+            _buildSectionTitle(AppLocalizations.of(context)!.translate('usage_frequency'), Icons.schedule),
             const SizedBox(height: 20),
             _buildFrequencySelector(),
             const SizedBox(height: 20),
             _buildTimeSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Mide Durumu', Icons.restaurant),
+            _buildSectionTitle(AppLocalizations.of(context)!.translate('stomach_condition'), Icons.restaurant),
             const SizedBox(height: 20),
             _buildStomachConditionSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Döngü Ayarları', Icons.loop),
+            _buildSectionTitle(AppLocalizations.of(context)!.translate('cycle_settings'), Icons.loop),
             const SizedBox(height: 20),
             _buildContinuousToggle(),
             if (!_isContinuous) ...[
@@ -419,12 +432,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             ],
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Notlar (İsteğe Bağlı)', Icons.note),
+            _buildSectionTitle(AppLocalizations.of(context)!.translate('notes_optional'), Icons.note),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _notesController,
-              label: 'Notlar',
-              hint: 'İlaçla ilgili özel notlarınız...',
+              label: AppLocalizations.of(context)!.translate('notes'),
+              hint: AppLocalizations.of(context)!.translate('special_notes_about_medication'),
               icon: Icons.edit_note,
               maxLines: 3,
             ),
@@ -524,9 +537,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Kullanım Saatleri',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.translate('usage_times'),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
@@ -680,16 +693,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Sürekli Döngü',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.translate('continuous_cycle'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                 ),
                 Text(
-                  'İlaç günlük olarak otomatik tekrarlanır',
+                  AppLocalizations.of(context)!.translate('medication_repeats_daily'),
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
@@ -710,7 +723,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       children: [
         Expanded(
           child: _buildDateSelector(
-            'Başlangıç Tarihi',
+            AppLocalizations.of(context)!.translate('start_date'),
             _startDate,
             () => _selectDate(true),
             Icons.play_arrow,
@@ -719,7 +732,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildDateSelector(
-            'Bitiş Tarihi',
+            AppLocalizations.of(context)!.translate('end_date'),
             _endDate,
             () => _selectDate(false),
             Icons.stop,
@@ -765,7 +778,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             Text(
               date != null
                   ? '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}'
-                  : 'Tarih seçin',
+                  : AppLocalizations.of(context)!.translate('select_date'),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -817,10 +830,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 const SizedBox(width: 12),
                 Text(
                   _isLoading
-                      ? 'Kaydediliyor...'
+                      ? AppLocalizations.of(context)!.translate('saving')
                       : widget.medication == null
-                      ? 'İlacı Kaydet'
-                      : 'Değişiklikleri Kaydet',
+                      ? AppLocalizations.of(context)!.translate('save_medication')
+                      : AppLocalizations.of(context)!.translate('save_changes'),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,

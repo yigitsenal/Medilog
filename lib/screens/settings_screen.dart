@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import '../models/user_preferences.dart';
 import '../services/settings_service.dart';
 import '../services/location_service.dart'; // Konum servisini ekleyin
+import '../services/localization_service.dart';
+import '../main.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -256,9 +258,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
-        title: const Text(
-          'Ayarlar',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.translate('settings'),
+          style: const TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -327,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Medilog Kullanıcısı',
+                  AppLocalizations.of(context)!.translate('medilog_user'),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
@@ -341,7 +343,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Profili Düzenle',
+                    AppLocalizations.of(context)!.translate('edit_profile'),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -364,70 +366,70 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildSettingsGroups() {
     return Column(
       children: [
-        _buildSettingsGroup('Bildirimler', Icons.notifications, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('notifications'), Icons.notifications, [
           _buildSwitchTile(
-            'Bildirimler',
-            'İlaç hatırlatıcıları al',
+            AppLocalizations.of(context)!.translate('notifications'),
+            AppLocalizations.of(context)!.translate('receive_medication_reminders'),
             _userPreferences?.notificationsEnabled ?? true,
             (value) => _updatePreferences(
               _userPreferences!.copyWith(notificationsEnabled: value),
             ),
           ),
           _buildListTile(
-            'Erteleme Süresi',
-            '${_userPreferences?.snoozeMinutes ?? 5} dakika',
+            AppLocalizations.of(context)!.translate('snooze_duration'),
+            '${_userPreferences?.snoozeMinutes ?? 5} ${AppLocalizations.of(context)!.translate('minutes')}',
             Icons.snooze,
             () => _showSnoozeDialog(),
           ),
           _buildListTile(
-            'Bildirim Sesi',
-            _userPreferences?.reminderTone ?? 'Varsayılan',
+            AppLocalizations.of(context)!.translate('notification_sound'),
+            _userPreferences?.reminderTone ?? AppLocalizations.of(context)!.translate('default'),
             Icons.music_note,
             () => _showReminderToneDialog(),
           ),
         ]),
         const SizedBox(height: 16),
-        _buildSettingsGroup('Görünüm', Icons.palette, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('appearance'), Icons.palette, [
           _buildSwitchTile(
-            'Karanlık Mod',
-            'Koyu tema kullan',
+            AppLocalizations.of(context)!.translate('dark_mode'),
+            AppLocalizations.of(context)!.translate('use_dark_theme'),
             _userPreferences?.darkMode ?? false,
             (value) =>
                 _updatePreferences(_userPreferences!.copyWith(darkMode: value)),
           ),
           _buildListTile(
-            'Dil',
+            AppLocalizations.of(context)!.translate('language'),
             _getLanguageName(_userPreferences?.language ?? 'tr'),
             Icons.language,
             () => _showLanguageDialog(),
           ),
         ]),
         const SizedBox(height: 16),
-        _buildSettingsGroup('Konum', Icons.location_on, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('location'), Icons.location_on, [
           _buildSwitchTile(
-            'Evden Ayrılırken Hatırlat',
-            'Konum tabanlı hatırlatıcıları etkinleştir',
+            AppLocalizations.of(context)!.translate('remind_when_leaving_home'),
+            AppLocalizations.of(context)!.translate('enable_location_based_reminders'),
             _isGeofenceEnabled,
             _toggleGeofence,
           ),
           _buildListTile(
-            'Ev Konumunu Ayarla',
-            'Hatırlatıcı için evinizi kaydedin',
+            AppLocalizations.of(context)!.translate('set_home_location'),
+            AppLocalizations.of(context)!.translate('save_home_for_reminders'),
             Icons.home,
             _setHomeLocation,
             isDestructive: _isSettingHome, // Butonun durumunu belirtmek için
           ),
           // --- TEST BUTONU ---
           _buildListTile(
-            'Test Bildirimi Gönder',
-            'Evden çıkış bildirimini test et',
+            AppLocalizations.of(context)!.translate('send_test_notification'),
+            AppLocalizations.of(context)!.translate('test_home_exit_notification'),
             Icons.notification_important,
             () async {
               await _locationService.sendTestNotification();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Test bildirimi gönderildi.'),
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.translate('test_notification_sent')),
                     backgroundColor: Colors.blue,
                   ),
                 );
@@ -436,9 +438,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ]),
         const SizedBox(height: 16),
-        _buildSettingsGroup('Veri ve Yedekleme', Icons.backup, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('data_and_backup'), Icons.backup, [
           _buildListTile(
-            'Yedekleme Sıklığı',
+            AppLocalizations.of(context)!.translate('backup_frequency'),
             _getBackupFrequencyName(
               _userPreferences?.backupFrequency ?? 'weekly',
             ),
@@ -446,60 +448,60 @@ class _SettingsScreenState extends State<SettingsScreen>
             () => _showBackupFrequencyDialog(),
           ),
           _buildListTile(
-            'Verileri Dışa Aktar',
-            'İlaç verilerini CSV olarak kaydet',
+            AppLocalizations.of(context)!.translate('export_data'),
+            AppLocalizations.of(context)!.translate('save_medication_data_as_csv'),
             Icons.file_download,
             () => _exportData(),
           ),
           _buildListTile(
-            'Verileri İçe Aktar',
-            'Yedek dosyasından geri yükle',
+            AppLocalizations.of(context)!.translate('import_data'),
+            AppLocalizations.of(context)!.translate('restore_from_backup_file'),
             Icons.file_upload,
             () => _importData(),
           ),
         ]),
         const SizedBox(height: 16),
-        _buildSettingsGroup('Raporlar', Icons.analytics, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('reports'), Icons.analytics, [
           _buildSwitchTile(
-            'Haftalık Raporlar',
-            'Haftalık uyum raporları al',
+            AppLocalizations.of(context)!.translate('weekly_reports'),
+            AppLocalizations.of(context)!.translate('receive_weekly_compliance_reports'),
             _userPreferences?.weeklyReports ?? true,
             (value) => _updatePreferences(
               _userPreferences!.copyWith(weeklyReports: value),
             ),
           ),
           _buildSwitchTile(
-            'Aylık Raporlar',
-            'Aylık analiz raporları al',
+            AppLocalizations.of(context)!.translate('monthly_reports'),
+            AppLocalizations.of(context)!.translate('receive_monthly_analysis_reports'),
             _userPreferences?.monthlyReports ?? true,
             (value) => _updatePreferences(
               _userPreferences!.copyWith(monthlyReports: value),
             ),
           ),
           _buildListTile(
-            'Günlük Hedef',
-            '%${_userPreferences?.dailyGoalCompliance ?? 80} uyum',
+            AppLocalizations.of(context)!.translate('daily_goal'),
+            '%${_userPreferences?.dailyGoalCompliance ?? 80} ${AppLocalizations.of(context)!.translate('compliance')}',
             Icons.track_changes,
             () => _showDailyGoalDialog(),
           ),
         ]),
         const SizedBox(height: 16),
-        _buildSettingsGroup('Diğer', Icons.more_horiz, [
+        _buildSettingsGroup(AppLocalizations.of(context)!.translate('other'), Icons.more_horiz, [
           _buildListTile(
-            'Hakkında',
-            'Uygulama bilgileri ve sürüm',
+            AppLocalizations.of(context)!.translate('about'),
+            AppLocalizations.of(context)!.translate('app_information_and_version'),
             Icons.info,
             () => _showAboutDialog(),
           ),
           _buildListTile(
-            'Gizlilik Politikası',
-            'Veri kullanım politikamızı görüntüle',
+            AppLocalizations.of(context)!.translate('privacy_policy'),
+            AppLocalizations.of(context)!.translate('view_our_data_usage_policy'),
             Icons.privacy_tip,
             () => _showPrivacyPolicy(),
           ),
           _buildListTile(
-            'Ayarları Sıfırla',
-            'Tüm ayarları varsayılana döndür',
+            AppLocalizations.of(context)!.translate('reset_settings'),
+            AppLocalizations.of(context)!.translate('reset_all_settings_to_default'),
             Icons.restore,
             () => _showResetDialog(),
             isDestructive: true,
@@ -621,26 +623,26 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _getLanguageName(String code) {
     switch (code) {
       case 'tr':
-        return 'Türkçe';
+        return AppLocalizations.of(context)!.translate('turkish');
       case 'en':
-        return 'English';
+        return AppLocalizations.of(context)!.translate('english');
       default:
-        return 'Türkçe';
+        return AppLocalizations.of(context)!.translate('turkish');
     }
   }
 
   String _getBackupFrequencyName(String frequency) {
     switch (frequency) {
       case 'never':
-        return 'Hiçbir zaman';
+        return AppLocalizations.of(context)!.translate('never');
       case 'daily':
-        return 'Günlük';
+        return AppLocalizations.of(context)!.translate('daily');
       case 'weekly':
-        return 'Haftalık';
+        return AppLocalizations.of(context)!.translate('weekly');
       case 'monthly':
-        return 'Aylık';
+        return AppLocalizations.of(context)!.translate('monthly');
       default:
-        return 'Haftalık';
+        return AppLocalizations.of(context)!.translate('weekly');
     }
   }
 
@@ -653,18 +655,18 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Profili Düzenle'),
+        title: Text(AppLocalizations.of(context)!.translate('profile_edit')),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'İsim',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.translate('name'),
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
+            child: Text(AppLocalizations.of(context)!.translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -673,7 +675,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               );
               Navigator.pop(context);
             },
-            child: const Text('Kaydet'),
+            child: Text(AppLocalizations.of(context)!.translate('save')),
           ),
         ],
       ),
@@ -684,13 +686,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Erteleme Süresi'),
+        title: Text(AppLocalizations.of(context)!.translate('snooze_duration_selection')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int minutes in [1, 5, 10, 15, 30])
               ListTile(
-                title: Text('$minutes dakika'),
+                title: Text('$minutes ${AppLocalizations.of(context)!.translate('minutes')}'),
                 leading: Radio<int>(
                   value: minutes,
                   groupValue: _userPreferences?.snoozeMinutes,
@@ -710,12 +712,12 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _showReminderToneDialog() {
     final tones = ['default', 'gentle', 'alarm', 'notification'];
-    final toneNames = ['Varsayılan', 'Yumuşak', 'Alarm', 'Bildirim'];
+    final toneNames = [AppLocalizations.of(context)!.translate('default'), AppLocalizations.of(context)!.translate('gentle'), AppLocalizations.of(context)!.translate('alarm'), AppLocalizations.of(context)!.translate('notification')];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Bildirim Sesi'),
+        title: Text(AppLocalizations.of(context)!.translate('notification_sound_selection')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -743,12 +745,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Dil Seçimi'),
+        title: Text(AppLocalizations.of(context)!.translate('language_selection')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('Türkçe'),
+              title: Text(AppLocalizations.of(context)!.translate('turkish')),
               leading: Radio<String>(
                 value: 'tr',
                 groupValue: _userPreferences?.language,
@@ -756,12 +758,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   _updatePreferences(
                     _userPreferences!.copyWith(language: value),
                   );
+                  MedilogApp.setLocale(context, const Locale('tr', ''));
                   Navigator.pop(context);
                 },
               ),
             ),
             ListTile(
-              title: const Text('English'),
+              title: Text(AppLocalizations.of(context)!.translate('english')),
               leading: Radio<String>(
                 value: 'en',
                 groupValue: _userPreferences?.language,
@@ -769,6 +772,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   _updatePreferences(
                     _userPreferences!.copyWith(language: value),
                   );
+                  MedilogApp.setLocale(context, const Locale('en', ''));
                   Navigator.pop(context);
                 },
               ),
@@ -781,12 +785,12 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _showBackupFrequencyDialog() {
     final frequencies = ['never', 'daily', 'weekly', 'monthly'];
-    final frequencyNames = ['Hiçbir zaman', 'Günlük', 'Haftalık', 'Aylık'];
+    final frequencyNames = [AppLocalizations.of(context)!.translate('never'), AppLocalizations.of(context)!.translate('daily'), AppLocalizations.of(context)!.translate('weekly'), AppLocalizations.of(context)!.translate('monthly')];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Yedekleme Sıklığı'),
+        title: Text(AppLocalizations.of(context)!.translate('backup_frequency_selection')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -814,7 +818,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Günlük Uyum Hedefi'),
+        title: Text(AppLocalizations.of(context)!.translate('daily_compliance_goal')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -841,7 +845,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showAboutDialog() {
     showAboutDialog(
       context: context,
-      applicationName: 'Medilog',
+      applicationName: AppLocalizations.of(context)!.translate('medilog'),
       applicationVersion: '1.0.0',
       applicationIcon: Container(
         width: 64,
@@ -857,11 +861,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       ),
       children: [
-        const Text(
-          'Medilog, ilaç takibi ve sağlık yönetimi için geliştirilmiş modern bir uygulamadır.',
+        Text(
+          AppLocalizations.of(context)!.translate('medilog_is_a_modern_app_for_medication_tracking'),
         ),
         const SizedBox(height: 16),
-        const Text('© 2024 Medilog Ekibi'),
+        Text(AppLocalizations.of(context)!.translate('medilog_team')),
       ],
     );
   }
@@ -870,18 +874,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Gizlilik Politikası'),
-        content: const SingleChildScrollView(
+        title: Text(AppLocalizations.of(context)!.translate('privacy_policy')),
+        content: SingleChildScrollView(
           child: Text(
-            'Medilog uygulaması, kullanıcıların gizliliğini korumayı taahhüt eder. '
-            'Verileriniz yalnızca ilaç takibi amacıyla kullanılır ve üçüncü taraflarla paylaşılmaz. '
-            'Tüm veriler cihazınızda güvenli şekilde saklanır.',
+            AppLocalizations.of(context)!.translate('privacy_policy_content'),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
+            child: Text(AppLocalizations.of(context)!.translate('ok')),
           ),
         ],
       ),
@@ -892,15 +894,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ayarları Sıfırla'),
-        content: const Text(
-          'Tüm ayarları varsayılan değerlere döndürmek istediğinizden emin misiniz? '
-          'Bu işlem geri alınamaz.',
+        title: Text(AppLocalizations.of(context)!.translate('reset_settings_confirmation')),
+        content: Text(
+          AppLocalizations.of(context)!.translate('are_you_sure_you_want_to_reset_all_settings'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
+            child: Text(AppLocalizations.of(context)!.translate('cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -910,14 +911,14 @@ class _SettingsScreenState extends State<SettingsScreen>
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Ayarlar başarıyla sıfırlandı'),
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.translate('settings_reset_successfully')),
                     backgroundColor: Colors.green,
                   ),
                 );
               }
             },
-            child: const Text('Sıfırla', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.translate('reset'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -926,8 +927,8 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _exportData() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veri dışa aktarma özelliği yakında eklenecek'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.translate('data_export_feature_coming_soon')),
         backgroundColor: Colors.orange,
       ),
     );
@@ -935,8 +936,8 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _importData() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veri içe aktarma özelliği yakında eklenecek'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.translate('data_import_feature_coming_soon')),
         backgroundColor: Colors.orange,
       ),
     );
