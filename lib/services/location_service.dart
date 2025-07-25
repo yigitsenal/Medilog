@@ -18,7 +18,8 @@ class LocationService {
 
   // Localized notification texts
   String _notificationTitle = "İlaçlarınızı Unutmayın!";
-  String _notificationBody = "Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?";
+  String _notificationBody =
+      "Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?";
 
   Stream<Geofence> get geofenceStream => _controller.stream;
 
@@ -40,7 +41,9 @@ class LocationService {
     if (_listenersAdded) return;
     _geofenceService.addGeofenceStatusChangeListener(_onGeofenceStatusChanged);
     _geofenceService.addLocationChangeListener(_onLocationChanged);
-    _geofenceService.addLocationServicesStatusChangeListener(_onLocationServicesStatusChanged);
+    _geofenceService.addLocationServicesStatusChangeListener(
+      _onLocationServicesStatusChanged,
+    );
     _geofenceService.addActivityChangeListener(_onActivityChanged);
     _geofenceService.addStreamErrorListener(_onError);
     _listenersAdded = true;
@@ -51,7 +54,7 @@ class LocationService {
       print("Geofence service is already running.");
       return;
     }
-    
+
     await _updateGeofence();
     if (_geofenceList.isEmpty) {
       throw ('Ev konumu ayarlanmamış. Lütfen önce ev konumunuzu ayarlayın.');
@@ -91,11 +94,11 @@ class LocationService {
   }
 
   Future<void> _onGeofenceStatusChanged(
-      Geofence geofence,
-      GeofenceRadius geofenceRadius,
-      GeofenceStatus geofenceStatus,
-      Location location,
-      ) async {
+    Geofence geofence,
+    GeofenceRadius geofenceRadius,
+    GeofenceStatus geofenceStatus,
+    Location location,
+  ) async {
     print('geofence: ${geofence.toJson()}');
     print('geofenceStatus: ${geofenceStatus.toString()}');
     _controller.sink.add(geofence);
@@ -106,33 +109,29 @@ class LocationService {
   }
 
   // Method to set localized notification texts
-  void setNotificationTexts({
-    required String title,
-    required String body,
-  }) {
+  void setNotificationTexts({required String title, required String body}) {
     _notificationTitle = title;
     _notificationBody = body;
   }
-  
-  Future<void> _sendExitNotification({
-    String? title,
-    String? body,
-  }) async {
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-      const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-          'geofence_notifications',
-          'Geofence Notifications',
-          channelDescription: 'Notifications for geofence events',
-          importance: Importance.high,
-          priority: Priority.high,
-      );
-      const notificationDetails = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await flutterLocalNotificationsPlugin.show(
-        123, // Benzersiz bir id
-        title ?? _notificationTitle,
-        body ?? _notificationBody,
-        notificationDetails,
-      );
+
+  Future<void> _sendExitNotification({String? title, String? body}) async {
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'geofence_notifications',
+      'Geofence Notifications',
+      channelDescription: 'Notifications for geofence events',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const notificationDetails = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+    await flutterLocalNotificationsPlugin.show(
+      123, // Benzersiz bir id
+      title ?? _notificationTitle,
+      body ?? _notificationBody,
+      notificationDetails,
+    );
   }
 
   void _onLocationChanged(Location location) {
@@ -162,19 +161,19 @@ class LocationService {
 
     serviceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw('Konum servisleri kapalı.');
+      throw ('Konum servisleri kapalı.');
     }
 
     permission = await gl.Geolocator.checkPermission();
     if (permission == gl.LocationPermission.denied) {
       permission = await gl.Geolocator.requestPermission();
       if (permission == gl.LocationPermission.denied) {
-        throw('Konum izinleri reddedildi.');
+        throw ('Konum izinleri reddedildi.');
       }
     }
 
     if (permission == gl.LocationPermission.deniedForever) {
-      throw('Konum izinleri kalıcı olarak reddedildi.');
+      throw ('Konum izinleri kalıcı olarak reddedildi.');
     }
 
     final position = await gl.Geolocator.getCurrentPosition();
@@ -196,14 +195,14 @@ class LocationService {
 
     _geofenceList.clear();
     if (lat != null && lng != null) {
-      _geofenceList.add(Geofence(
-        id: 'home',
-        latitude: lat,
-        longitude: lng,
-        radius: [
-          GeofenceRadius(id: 'home_radius', length: 200),
-        ],
-      ));
+      _geofenceList.add(
+        Geofence(
+          id: 'home',
+          latitude: lat,
+          longitude: lng,
+          radius: [GeofenceRadius(id: 'home_radius', length: 200)],
+        ),
+      );
     }
   }
 

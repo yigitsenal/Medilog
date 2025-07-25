@@ -77,15 +77,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Set localized texts for LocationService
       final locationService = LocationService();
       locationService.setNotificationTexts(
-        title: AppLocalizations.of(context)!.translate('dont_forget_medications'),
+        title: AppLocalizations.of(
+          context,
+        )!.translate('dont_forget_medications'),
         body: AppLocalizations.of(context)!.translate('leaving_home_reminder'),
       );
 
       // Günlük ilaç loglarını oluştur (eksik olanları)
       await _notificationService.createDailyMedicationLogs(
-        medicationTimeText: AppLocalizations.of(context)!.translate('medication_time'),
-        onEmptyStomachText: AppLocalizations.of(context)!.translate('on_empty_stomach'),
-        withFoodText: AppLocalizations.of(context)!.translate('with_food_notification'),
+        medicationTimeText: AppLocalizations.of(
+          context,
+        )!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(
+          context,
+        )!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(
+          context,
+        )!.translate('with_food_notification'),
       );
 
       final logs = await _dbHelper.getTodayLogs();
@@ -112,7 +120,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.translate('error_loading_data')}: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error_loading_data')}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -129,7 +139,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('medication_taken_successfully')),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.translate('medication_taken_successfully'),
+            ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -142,7 +156,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error')}: $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -166,7 +182,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('medication_skipped_successfully')),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.translate('medication_skipped_successfully'),
+            ),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -179,7 +199,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error')}: $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
