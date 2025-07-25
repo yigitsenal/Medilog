@@ -8,21 +8,23 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # Flutter Native Splash Screen configuration
 flutter_native_splash:
   # Beyaz arka plan (görseldeki gibi)
-  color: "#ffffff"
+  color: "#2BC1C5"
 
   # Mevcut splash logo'yu kullan
   image: assets/images/splash.png
 
-  # Android 12+ splash screen
+  # Android 12+ splash screen - tam ekran için
   android_12:
-    image: assets/images/splash12.png
-    color: "#ffffff"
+    # Tam ekran splash için image kullan
+    image: assets/images/splash.png
+    color: "#2BC1C5"
     fullscreen: true
-
-    #icon_background_color: "#63C5DA"
+    # Branding image kullanarak tam ekran efekti
+    #branding: assets/images/brand.png
 
   # Dark theme için koyu arka plan
-  color_dark: "#042a49"
+  color_dark: "#2BC1C5"
+  #color_dark: "#042a49"
   image_dark: assets/images/splash.png
 
   # Web platformu için devre dışı
