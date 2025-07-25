@@ -53,8 +53,6 @@ dependencies:
   # User preferences
   shared_preferences: ^2.2.2
 
-  # Biometric authentication
-  local_auth: ^2.1.8
   geolocator: ^14.0.1
   geofence_service: ^6.0.0+1
   google_maps_flutter: ^2.12.3

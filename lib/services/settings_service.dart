@@ -9,7 +9,6 @@ class SettingsService {
   static const String _snoozeMinutesKey = 'snoozeMinutes';
   static const String _darkModeKey = 'darkMode';
   static const String _languageKey = 'language';
-  static const String _biometricAuthKey = 'biometricAuth';
   static const String _showMedicationImagesKey = 'showMedicationImages';
   static const String _dailyGoalComplianceKey = 'dailyGoalCompliance';
   static const String _weeklyReportsKey = 'weeklyReports';
@@ -38,7 +37,6 @@ class SettingsService {
       snoozeMinutes: _prefs!.getInt(_snoozeMinutesKey) ?? 5,
       darkMode: _prefs!.getBool(_darkModeKey) ?? false,
       language: _prefs!.getString(_languageKey) ?? 'tr',
-      biometricAuth: _prefs!.getBool(_biometricAuthKey) ?? false,
       showMedicationImages: _prefs!.getBool(_showMedicationImagesKey) ?? true,
       dailyGoalCompliance: _prefs!.getInt(_dailyGoalComplianceKey) ?? 80,
       weeklyReports: _prefs!.getBool(_weeklyReportsKey) ?? true,
@@ -62,7 +60,6 @@ class SettingsService {
     await _prefs!.setInt(_snoozeMinutesKey, preferences.snoozeMinutes);
     await _prefs!.setBool(_darkModeKey, preferences.darkMode);
     await _prefs!.setString(_languageKey, preferences.language);
-    await _prefs!.setBool(_biometricAuthKey, preferences.biometricAuth);
     await _prefs!.setBool(
       _showMedicationImagesKey,
       preferences.showMedicationImages,
@@ -109,11 +106,6 @@ class SettingsService {
   Future<void> updateLanguage(String language) async {
     await initialize();
     await _prefs!.setString(_languageKey, language);
-  }
-
-  Future<void> toggleBiometricAuth(bool enabled) async {
-    await initialize();
-    await _prefs!.setBool(_biometricAuthKey, enabled);
   }
 
   Future<void> updateDailyGoalCompliance(int percentage) async {

@@ -7,7 +7,6 @@ class UserPreferences {
   final int snoozeMinutes;
   final bool darkMode;
   final String language;
-  final bool biometricAuth;
   final bool showMedicationImages;
   final int dailyGoalCompliance;
   final bool weeklyReports;
@@ -25,7 +24,6 @@ class UserPreferences {
     this.snoozeMinutes = 5,
     this.darkMode = false,
     this.language = 'tr',
-    this.biometricAuth = false,
     this.showMedicationImages = true,
     this.dailyGoalCompliance = 80,
     this.weeklyReports = true,
@@ -45,7 +43,6 @@ class UserPreferences {
       'snoozeMinutes': snoozeMinutes,
       'darkMode': darkMode ? 1 : 0,
       'language': language,
-      'biometricAuth': biometricAuth ? 1 : 0,
       'showMedicationImages': showMedicationImages ? 1 : 0,
       'dailyGoalCompliance': dailyGoalCompliance,
       'weeklyReports': weeklyReports ? 1 : 0,
@@ -66,7 +63,6 @@ class UserPreferences {
       snoozeMinutes: map['snoozeMinutes']?.toInt() ?? 5,
       darkMode: (map['darkMode'] ?? 0) == 1,
       language: map['language'] ?? 'tr',
-      biometricAuth: (map['biometricAuth'] ?? 0) == 1,
       showMedicationImages: (map['showMedicationImages'] ?? 1) == 1,
       dailyGoalCompliance: map['dailyGoalCompliance']?.toInt() ?? 80,
       weeklyReports: (map['weeklyReports'] ?? 1) == 1,
@@ -86,7 +82,6 @@ class UserPreferences {
     int? snoozeMinutes,
     bool? darkMode,
     String? language,
-    bool? biometricAuth,
     bool? showMedicationImages,
     int? dailyGoalCompliance,
     bool? weeklyReports,
@@ -104,7 +99,6 @@ class UserPreferences {
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
       darkMode: darkMode ?? this.darkMode,
       language: language ?? this.language,
-      biometricAuth: biometricAuth ?? this.biometricAuth,
       showMedicationImages: showMedicationImages ?? this.showMedicationImages,
       dailyGoalCompliance: dailyGoalCompliance ?? this.dailyGoalCompliance,
       weeklyReports: weeklyReports ?? this.weeklyReports,

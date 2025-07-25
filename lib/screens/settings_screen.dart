@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../models/user_preferences.dart';
 import '../services/settings_service.dart';
-import '../services/biometric_service.dart';
 import '../services/location_service.dart'; // Konum servisini ekleyin
 
 import 'package:permission_handler/permission_handler.dart';
@@ -401,17 +400,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             _getLanguageName(_userPreferences?.language ?? 'tr'),
             Icons.language,
             () => _showLanguageDialog(),
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _buildSettingsGroup('Güvenlik', Icons.security, [
-          _buildSwitchTile(
-            'Biyometrik Kimlik Doğrulama',
-            'Parmak izi/Yüz tanıma kullan',
-            _userPreferences?.biometricAuth ?? false,
-            (value) => _updatePreferences(
-              _userPreferences!.copyWith(biometricAuth: value),
-            ),
           ),
         ]),
         const SizedBox(height: 16),
