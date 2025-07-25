@@ -89,7 +89,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     _frequencyLabels = {
       'daily': AppLocalizations.of(context)!.translate('once_a_day'),
       'twice_daily': AppLocalizations.of(context)!.translate('twice_a_day'),
-      'three_times_daily': AppLocalizations.of(context)!.translate('three_times_a_day'),
+      'three_times_daily': AppLocalizations.of(
+        context,
+      )!.translate('three_times_a_day'),
       'weekly': AppLocalizations.of(context)!.translate('several_times_a_week'),
       'custom': AppLocalizations.of(context)!.translate('custom'),
     };
@@ -146,7 +148,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-
     );
 
     if (picked != null) {
@@ -178,7 +179,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-
     );
 
     if (picked != null) {
@@ -200,7 +200,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (_selectedTimes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.translate('select_at_least_one_time')),
+          content: Text(
+            AppLocalizations.of(context)!.translate('select_at_least_one_time'),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -215,7 +217,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (!_isContinuous && _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.translate('select_end_date')),
+          content: Text(
+            AppLocalizations.of(context)!.translate('select_end_date'),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -237,7 +241,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       final notes = _notesController.text.trim();
 
       if (name.isEmpty || dosage.isEmpty) {
-        throw Exception(AppLocalizations.of(context)!.translate('medication_name_and_dosage_required'));
+        throw Exception(
+          AppLocalizations.of(
+            context,
+          )!.translate('medication_name_and_dosage_required'),
+        );
       }
 
       final medication = Medication(
@@ -268,7 +276,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error')}: $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -342,8 +352,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               children: [
                 Text(
                   widget.medication == null
-                      ? AppLocalizations.of(context)!.translate('add_new_medication')
-                      : AppLocalizations.of(context)!.translate('edit_medication'),
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('add_new_medication')
+                      : AppLocalizations.of(
+                          context,
+                        )!.translate('edit_medication'),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -352,8 +366,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 ),
                 Text(
                   widget.medication == null
-                      ? AppLocalizations.of(context)!.translate('enter_medication_details')
-                      : AppLocalizations.of(context)!.translate('update_medication_details'),
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('enter_medication_details')
+                      : AppLocalizations.of(
+                          context,
+                        )!.translate('update_medication_details'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.8),
@@ -382,7 +400,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            _buildSectionTitle(AppLocalizations.of(context)!.translate('medication_details'), Icons.medication),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('medication_details'),
+              Icons.medication,
+            ),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _nameController,
@@ -391,7 +412,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               icon: Icons.local_pharmacy,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return AppLocalizations.of(context)!.translate('medication_name_required');
+                  return AppLocalizations.of(
+                    context,
+                  )!.translate('medication_name_required');
                 }
                 return null;
               },
@@ -404,26 +427,37 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               icon: Icons.straighten,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return AppLocalizations.of(context)!.translate('dosage_required');
+                  return AppLocalizations.of(
+                    context,
+                  )!.translate('dosage_required');
                 }
                 return null;
               },
             ),
             const SizedBox(height: 30),
 
-            _buildSectionTitle(AppLocalizations.of(context)!.translate('usage_frequency'), Icons.schedule),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('usage_frequency'),
+              Icons.schedule,
+            ),
             const SizedBox(height: 20),
             _buildFrequencySelector(),
             const SizedBox(height: 20),
             _buildTimeSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle(AppLocalizations.of(context)!.translate('stomach_condition'), Icons.restaurant),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('stomach_condition'),
+              Icons.restaurant,
+            ),
             const SizedBox(height: 20),
             _buildStomachConditionSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle(AppLocalizations.of(context)!.translate('cycle_settings'), Icons.loop),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('cycle_settings'),
+              Icons.loop,
+            ),
             const SizedBox(height: 20),
             _buildContinuousToggle(),
             if (!_isContinuous) ...[
@@ -432,12 +466,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             ],
             const SizedBox(height: 30),
 
-            _buildSectionTitle(AppLocalizations.of(context)!.translate('notes_optional'), Icons.note),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('notes_optional'),
+              Icons.note,
+            ),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _notesController,
               label: AppLocalizations.of(context)!.translate('notes'),
-              hint: AppLocalizations.of(context)!.translate('special_notes_about_medication'),
+              hint: AppLocalizations.of(
+                context,
+              )!.translate('special_notes_about_medication'),
               icon: Icons.edit_note,
               maxLines: 3,
             ),
@@ -459,7 +498,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
         ),
         const SizedBox(width: 12),
         Text(
@@ -516,7 +559,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         value: _frequency,
         onChanged: _onFrequencyChanged,
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.repeat, color: Theme.of(context).colorScheme.primary),
+          prefixIcon: Icon(
+            Icons.repeat,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(16),
         ),
@@ -546,7 +592,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               ),
             ),
             IconButton(
-              icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+              icon: Icon(
+                Icons.add_circle,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               onPressed: () => _selectTime(_selectedTimes.length),
             ),
           ],
@@ -560,7 +609,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
@@ -633,7 +685,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey[100],
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
@@ -686,7 +740,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.loop, color: Theme.of(context).colorScheme.primary),
+            child: Icon(
+              Icons.loop,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -702,7 +759,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   ),
                 ),
                 Text(
-                  AppLocalizations.of(context)!.translate('medication_repeats_daily'),
+                  AppLocalizations.of(
+                    context,
+                  )!.translate('medication_repeats_daily'),
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
@@ -762,7 +821,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           children: [
             Row(
               children: [
-                Icon(icon, color: Theme.of(context).colorScheme.primary, size: 18),
+                Icon(
+                  icon,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -795,7 +858,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.secondary,
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -832,7 +898,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   _isLoading
                       ? AppLocalizations.of(context)!.translate('saving')
                       : widget.medication == null
-                      ? AppLocalizations.of(context)!.translate('save_medication')
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('save_medication')
                       : AppLocalizations.of(context)!.translate('save_changes'),
                   style: const TextStyle(
                     color: Colors.white,

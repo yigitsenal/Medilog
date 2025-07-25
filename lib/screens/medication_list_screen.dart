@@ -62,8 +62,11 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('error_loading_data') + ': $e'),
-backgroundColor: Color(0xFF00A8E8),
+            content: Text(
+              AppLocalizations.of(context)!.translate('error_loading_data') +
+                  ': $e',
+            ),
+            backgroundColor: Color(0xFF00A8E8),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -98,10 +101,14 @@ backgroundColor: Color(0xFF00A8E8),
           SnackBar(
             content: Text(
               updatedMedication.isActive
-                  ? AppLocalizations.of(context)!.translate('medication_activated')
-                  : AppLocalizations.of(context)!.translate('medication_deactivated'),
+                  ? AppLocalizations.of(
+                      context,
+                    )!.translate('medication_activated')
+                  : AppLocalizations.of(
+                      context,
+                    )!.translate('medication_deactivated'),
             ),
-backgroundColor: updatedMedication.isActive
+            backgroundColor: updatedMedication.isActive
                 ? Color(0xFF00A8E8)
                 : Color(0xFF0077BE),
             behavior: SnackBarBehavior.floating,
@@ -115,7 +122,10 @@ backgroundColor: updatedMedication.isActive
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
+            content: Text(
+              AppLocalizations.of(context)!.translate('error_occurred') +
+                  ': $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -151,7 +161,9 @@ backgroundColor: updatedMedication.isActive
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!.translate('are_you_sure_you_want_to_delete_this_medication').replaceFirst('{medicationName}', medication.name),
+              AppLocalizations.of(context)!
+                  .translate('are_you_sure_you_want_to_delete_this_medication')
+                  .replaceFirst('{medicationName}', medication.name),
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
@@ -161,11 +173,15 @@ backgroundColor: updatedMedication.isActive
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!.translate('temporary_delete_description'),
+              AppLocalizations.of(
+                context,
+              )!.translate('temporary_delete_description'),
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             Text(
-              AppLocalizations.of(context)!.translate('permanent_delete_description'),
+              AppLocalizations.of(
+                context,
+              )!.translate('permanent_delete_description'),
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
@@ -224,7 +240,9 @@ backgroundColor: updatedMedication.isActive
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                AppLocalizations.of(context)!.translate('medication_temporarily_deleted'),
+                AppLocalizations.of(
+                  context,
+                )!.translate('medication_temporarily_deleted'),
               ),
               backgroundColor: Colors.orange,
               behavior: SnackBarBehavior.floating,
@@ -240,7 +258,11 @@ backgroundColor: updatedMedication.isActive
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.translate('medication_permanently_deleted')),
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.translate('medication_permanently_deleted'),
+              ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -256,7 +278,10 @@ backgroundColor: updatedMedication.isActive
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
+            content: Text(
+              AppLocalizations.of(context)!.translate('error_occurred') +
+                  ': $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -272,7 +297,9 @@ backgroundColor: updatedMedication.isActive
     final Map<String, String> frequencyLabels = {
       'daily': AppLocalizations.of(context)!.translate('once_a_day'),
       'twice_daily': AppLocalizations.of(context)!.translate('twice_a_day'),
-      'three_times_daily': AppLocalizations.of(context)!.translate('three_times_a_day'),
+      'three_times_daily': AppLocalizations.of(
+        context,
+      )!.translate('three_times_a_day'),
       'weekly': AppLocalizations.of(context)!.translate('several_times_a_week'),
       'custom': AppLocalizations.of(context)!.translate('custom'),
     };
@@ -364,7 +391,9 @@ backgroundColor: updatedMedication.isActive
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: const Icon(Icons.add, color: Colors.white, size: 28),
-          tooltip: AppLocalizations.of(context)!.translate('add_new_medication'),
+          tooltip: AppLocalizations.of(
+            context,
+          )!.translate('add_new_medication'),
         ),
       ),
     );
@@ -399,7 +428,9 @@ backgroundColor: updatedMedication.isActive
                   ),
                 ),
                 Text(
-                  AppLocalizations.of(context)!.translate('medications_registered').replaceFirst('{count}', _medications.length.toString()),
+                  AppLocalizations.of(context)!
+                      .translate('medications_registered')
+                      .replaceFirst('{count}', _medications.length.toString()),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.8),
@@ -491,7 +522,9 @@ backgroundColor: updatedMedication.isActive
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.translate('click_plus_button_to_add_new_medication'),
+            AppLocalizations.of(
+              context,
+            )!.translate('click_plus_button_to_add_new_medication'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -533,7 +566,9 @@ backgroundColor: updatedMedication.isActive
                       Icon(Icons.add, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        AppLocalizations.of(context)!.translate('add_my_first_medication'),
+                        AppLocalizations.of(
+                          context,
+                        )!.translate('add_my_first_medication'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -689,7 +724,9 @@ backgroundColor: updatedMedication.isActive
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Text(AppLocalizations.of(context)!.translate('edit')),
+                              Text(
+                                AppLocalizations.of(context)!.translate('edit'),
+                              ),
                             ],
                           ),
                         ),
@@ -720,8 +757,12 @@ backgroundColor: updatedMedication.isActive
                               const SizedBox(width: 12),
                               Text(
                                 medication.isActive
-                                    ? AppLocalizations.of(context)!.translate('deactivate')
-                                    : AppLocalizations.of(context)!.translate('activate'),
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.translate('deactivate')
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.translate('activate'),
                               ),
                             ],
                           ),
@@ -743,7 +784,11 @@ backgroundColor: updatedMedication.isActive
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Text(AppLocalizations.of(context)!.translate('delete')),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.translate('delete'),
+                              ),
                             ],
                           ),
                         ),
