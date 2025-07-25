@@ -5,6 +5,29 @@ description: "Medication tracking app for personal health management."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
+# Flutter Native Splash Screen configuration
+flutter_native_splash:
+  # Beyaz arka plan (görseldeki gibi)
+  color: "#ffffff"
+  
+  # Mevcut splash logo'yu kullan
+  image: assets/images/splash.png
+  
+  # Android 12+ splash screen
+  android_12:
+    image: assets/images/splash12.png
+    color: "#ffffff"
+    fullscreen: true
+
+    #icon_background_color: "#63C5DA"
+    
+  # Dark theme için koyu arka plan
+  color_dark: "#042a49"
+  image_dark: assets/images/splash.png
+  
+  # Web platformu için devre dışı
+  web: false
+
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
@@ -73,9 +96,9 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
 
-  # Icon generation (splash screen temporarily disabled)
+  # Icon generation and splash screen
   flutter_launcher_icons: ^0.13.1
-  # flutter_native_splash: ^2.4.0
+  flutter_native_splash: ^2.4.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
