@@ -5,6 +5,7 @@ import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
 import '../services/localization_service.dart';
+import '../services/location_service.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'history_screen.dart';
@@ -26,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<MedicationLog> _todayLogs = [];
   List<Medication> _medications = [];
   bool _isLoading = true;
+  bool _dataInitialized = false;
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
@@ -48,7 +50,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
     );
-    _loadTodayData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_dataInitialized) {
+      _dataInitialized = true;
+      _loadTodayData();
+    }
   }
 
   @override
@@ -64,8 +74,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
 
     try {
+      // Set localized texts for LocationService
+      final locationService = LocationService();
+      locationService.setNotificationTexts(
+        title: AppLocalizations.of(context)!.translate('dont_forget_medications'),
+        body: AppLocalizations.of(context)!.translate('leaving_home_reminder'),
+      );
+
       // Günlük ilaç loglarını oluştur (eksik olanları)
-      await _notificationService.createDailyMedicationLogs();
+      await _notificationService.createDailyMedicationLogs(
+        medicationTimeText: AppLocalizations.of(context)!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(context)!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(context)!.translate('with_food_notification'),
+      );
 
       final logs = await _dbHelper.getTodayLogs();
       final medications = await _dbHelper.getActiveMedications();
@@ -91,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Veri yüklenirken hata oluştu: $e'),
+            content: Text('${AppLocalizations.of(context)!.translate('error_loading_data')}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -108,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('İlaç alındı olarak işaretlendi ✓'),
+            content: Text(AppLocalizations.of(context)!.translate('medication_taken_successfully')),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -121,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -145,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('İlaç atlandı olarak işaretlendi'),
+            content: Text(AppLocalizations.of(context)!.translate('medication_skipped_successfully')),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -158,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Text('${AppLocalizations.of(context)!.translate('error')}: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -200,18 +221,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildLoadingScreen() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             strokeWidth: 3,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text(
-            'Yükleniyor...',
-            style: TextStyle(
+            AppLocalizations.of(context)!.translate('loading'),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w500,

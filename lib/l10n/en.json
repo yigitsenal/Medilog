@@ -195,5 +195,13 @@
   "medications_registered": "{count} medications registered",
   "no_medications_added_yet": "No Medications Added Yet",
   "click_plus_button_to_add_new_medication": "Click the + button to add your first medication",
-  "add_my_first_medication": "Add My First Medication"
+  "add_my_first_medication": "Add My First Medication",
+  "medication_taken_successfully": "Medication marked as taken ✓",
+  "medication_skipped_successfully": "Medication marked as skipped",
+  "medication_time": "Medication Time",
+  "on_empty_stomach": " - On empty stomach",
+  "with_food_notification": " - With food",
+  "loading": "Loading...",
+  "dont_forget_medications": "Don't Forget Your Medications!",
+  "leaving_home_reminder": "You're leaving home. Did you take your medications with you?"
 }

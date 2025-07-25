@@ -267,7 +267,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       }
 
       // Bildirimleri yeniden programla
-      await _notificationService.scheduleNotificationForMedication(medication);
+      await _notificationService.scheduleNotificationForMedication(
+        medication,
+        medicationTimeText: AppLocalizations.of(context)!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(context)!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(context)!.translate('with_food_notification'),
+      );
 
       if (mounted) {
         Navigator.pop(context, true);

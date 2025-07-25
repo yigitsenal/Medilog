@@ -26,7 +26,12 @@ void main() async {
   await notificationService.initialize();
 
   // Günlük ilaç loglarını oluştur (sürekli döngü için)
-  await notificationService.createDailyMedicationLogs();
+  // Use default Turkish values here as localization is not available yet
+  await notificationService.createDailyMedicationLogs(
+    medicationTimeText: 'İlaç Zamanı', // Will be updated when home screen loads
+    onEmptyStomachText: ' - Aç karına',
+    withFoodText: ' - Tok karına',
+  );
 
   runApp(const MedilogApp());
 }

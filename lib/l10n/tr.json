@@ -195,5 +195,13 @@
   "medications_registered": "{count} ilaç kayıtlı",
   "no_medications_added_yet": "Henüz İlaç Eklenmemiş",
   "click_plus_button_to_add_new_medication": "İlk ilacınızı eklemek için + butonuna tıklayın",
-  "add_my_first_medication": "İlk İlacımı Ekle"
+  "add_my_first_medication": "İlk İlacımı Ekle",
+  "medication_taken_successfully": "İlaç alındı olarak işaretlendi ✓",
+  "medication_skipped_successfully": "İlaç atlandı olarak işaretlendi",
+  "medication_time": "İlaç Zamanı",
+  "on_empty_stomach": " - Aç karına",
+  "with_food_notification": " - Tok karına",
+  "loading": "Yükleniyor...",
+  "dont_forget_medications": "İlaçlarınızı Unutmayın!",
+  "leaving_home_reminder": "Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?"
 }

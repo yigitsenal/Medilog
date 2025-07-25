@@ -16,6 +16,10 @@ class LocationService {
   final _geofenceList = <Geofence>[];
   final _controller = StreamController<Geofence>.broadcast();
 
+  // Localized notification texts
+  String _notificationTitle = "İlaçlarınızı Unutmayın!";
+  String _notificationBody = "Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?";
+
   Stream<Geofence> get geofenceStream => _controller.stream;
 
   LocationService._internal() {
@@ -100,8 +104,20 @@ class LocationService {
       await _sendExitNotification();
     }
   }
+
+  // Method to set localized notification texts
+  void setNotificationTexts({
+    required String title,
+    required String body,
+  }) {
+    _notificationTitle = title;
+    _notificationBody = body;
+  }
   
-  Future<void> _sendExitNotification() async {
+  Future<void> _sendExitNotification({
+    String? title,
+    String? body,
+  }) async {
       final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
       const androidPlatformChannelSpecifics = AndroidNotificationDetails(
           'geofence_notifications',
@@ -113,8 +129,8 @@ class LocationService {
       const notificationDetails = NotificationDetails(android: androidPlatformChannelSpecifics);
       await flutterLocalNotificationsPlugin.show(
         123, // Benzersiz bir id
-        "İlaçlarınızı Unutmayın!",
-        "Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?",
+        title ?? _notificationTitle,
+        body ?? _notificationBody,
         notificationDetails,
       );
   }
