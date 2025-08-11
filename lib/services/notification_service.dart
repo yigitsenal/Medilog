@@ -49,16 +49,40 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleNotificationForMedication(Medication medication) async {
+  Future<void> scheduleNotificationForMedication(
+    Medication medication, {
+    String? medicationTimeText,
+    String? onEmptyStomachText,
+    String? withFoodText,
+  }) async {
     if (!medication.isActive) return;
 
-    for (String timeStr in medication.times) {
-      await _scheduleRepeatingNotification(medication, timeStr);
-    }
+    DateTime today = DateTime.now();
+    await _createLogsForDate(
+      medication,
+      today,
+      medicationTimeText: medicationTimeText,
+      onEmptyStomachText: onEmptyStomachText,
+      withFoodText: withFoodText,
+    );
+
+    // Yarın için de hazırlık
+    DateTime tomorrow = today.add(const Duration(days: 1));
+    await _createLogsForDate(
+      medication,
+      tomorrow,
+      medicationTimeText: medicationTimeText,
+      onEmptyStomachText: onEmptyStomachText,
+      withFoodText: withFoodText,
+    );
   }
 
   // Yeni metod: Sürekli döngü için günlük ilaç loglarını oluştur
-  Future<void> createDailyMedicationLogs() async {
+  Future<void> createDailyMedicationLogs({
+    String? medicationTimeText,
+    String? onEmptyStomachText,
+    String? withFoodText,
+  }) async {
     List<Medication> activeMedications = await _dbHelper.getActiveMedications();
     DateTime today = DateTime.now();
 
@@ -70,7 +94,13 @@ class NotificationService {
 
       if (!todayLogsExist) {
         // Bugün için logları oluştur
-        await _createLogsForDate(medication, today);
+        await _createLogsForDate(
+          medication,
+          today,
+          medicationTimeText: medicationTimeText,
+          onEmptyStomachText: onEmptyStomachText,
+          withFoodText: withFoodText,
+        );
       }
 
       // Yarın için de logları oluştur (önceden hazırlık)
@@ -81,7 +111,13 @@ class NotificationService {
       );
 
       if (!tomorrowLogsExist) {
-        await _createLogsForDate(medication, tomorrow);
+        await _createLogsForDate(
+          medication,
+          tomorrow,
+          medicationTimeText: medicationTimeText,
+          onEmptyStomachText: onEmptyStomachText,
+          withFoodText: withFoodText,
+        );
       }
     }
   }
@@ -97,7 +133,13 @@ class NotificationService {
     return logs.any((log) => log.medicationId == medicationId);
   }
 
-  Future<void> _createLogsForDate(Medication medication, DateTime date) async {
+  Future<void> _createLogsForDate(
+    Medication medication,
+    DateTime date, {
+    String? medicationTimeText,
+    String? onEmptyStomachText,
+    String? withFoodText,
+  }) async {
     if (medication.id == null) return; // Null ID kontrolü
 
     for (String timeStr in medication.times) {
@@ -130,15 +172,24 @@ class NotificationService {
 
       // Sadece gelecekteki zamanlar için bildirim programla
       if (scheduledTime.isAfter(DateTime.now())) {
-        await _scheduleNotificationForLog(medication, log.copyWith(id: logId));
+        await _scheduleNotificationForLog(
+          medication,
+          log.copyWith(id: logId),
+          medicationTimeText: medicationTimeText,
+          onEmptyStomachText: onEmptyStomachText,
+          withFoodText: withFoodText,
+        );
       }
     }
   }
 
   Future<void> _scheduleNotificationForLog(
     Medication medication,
-    MedicationLog log,
-  ) async {
+    MedicationLog log, {
+    String? medicationTimeText,
+    String? onEmptyStomachText,
+    String? withFoodText,
+  }) async {
     if (log.id == null) return; // Null ID kontrolü
 
     try {
@@ -151,10 +202,10 @@ class NotificationService {
       String stomachText = '';
       switch (medication.stomachCondition) {
         case 'empty':
-          stomachText = ' - Aç karına';
+          stomachText = onEmptyStomachText ?? ' - Aç karına';
           break;
         case 'full':
-          stomachText = ' - Tok karına';
+          stomachText = withFoodText ?? ' - Tok karına';
           break;
         default:
           stomachText = '';
@@ -162,7 +213,7 @@ class NotificationService {
 
       await _notifications.zonedSchedule(
         log.id!,
-        'İlaç Zamanı',
+        medicationTimeText ?? 'İlaç Zamanı',
         '${medication.name} - ${medication.dosage}$stomachText',
         scheduledTZ,
         const NotificationDetails(
@@ -187,20 +238,6 @@ class NotificationService {
     } catch (e) {
       // Error scheduling notification
     }
-  }
-
-  Future<void> _scheduleRepeatingNotification(
-    Medication medication,
-    String timeStr,
-  ) async {
-    // Bu metod artık sadece yeni eklenen ilaçlar için kullanılacak
-    // Günlük döngü için createDailyMedicationLogs metodunu kullanacağız
-    DateTime today = DateTime.now();
-    await _createLogsForDate(medication, today);
-
-    // Yarın için de hazırlık
-    DateTime tomorrow = today.add(const Duration(days: 1));
-    await _createLogsForDate(medication, tomorrow);
   }
 
   Future<void> cancelNotificationsForMedication(int medicationId) async {

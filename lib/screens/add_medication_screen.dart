@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/medication.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/localization_service.dart';
 
 class AddMedicationScreen extends StatefulWidget {
   final Medication? medication;
@@ -43,20 +44,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     'custom',
   ];
 
-  final Map<String, String> _frequencyLabels = {
-    'daily': 'Günde bir kez',
-    'twice_daily': 'Günde iki kez',
-    'three_times_daily': 'Günde üç kez',
-    'weekly': 'Haftada birkaç kez',
-    'custom': 'Özel',
-  };
+  late Map<String, String> _frequencyLabels;
 
   final List<String> _stomachOptions = ['either', 'empty', 'full'];
-  final Map<String, String> _stomachLabels = {
-    'either': 'Fark etmez',
-    'empty': 'Aç karına',
-    'full': 'Tok karına',
-  };
+  late Map<String, String> _stomachLabels;
 
   @override
   void initState() {
@@ -86,6 +77,30 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
     _slideController.forward();
     _fadeController.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initializeLabels();
+  }
+
+  void _initializeLabels() {
+    _frequencyLabels = {
+      'daily': AppLocalizations.of(context)!.translate('once_a_day'),
+      'twice_daily': AppLocalizations.of(context)!.translate('twice_a_day'),
+      'three_times_daily': AppLocalizations.of(
+        context,
+      )!.translate('three_times_a_day'),
+      'weekly': AppLocalizations.of(context)!.translate('several_times_a_week'),
+      'custom': AppLocalizations.of(context)!.translate('custom'),
+    };
+
+    _stomachLabels = {
+      'either': AppLocalizations.of(context)!.translate('does_not_matter'),
+      'empty': AppLocalizations.of(context)!.translate('empty_stomach'),
+      'full': AppLocalizations.of(context)!.translate('full_stomach'),
+    };
   }
 
   @override
@@ -133,22 +148,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: Colors.white,
-              hourMinuteShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              dayPeriodShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -180,19 +179,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -214,7 +200,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (_selectedTimes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('En az bir saat seçmelisiniz'),
+          content: Text(
+            AppLocalizations.of(context)!.translate('select_at_least_one_time'),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -229,7 +217,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (!_isContinuous && _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Bitiş tarihi seçmelisiniz'),
+          content: Text(
+            AppLocalizations.of(context)!.translate('select_end_date'),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -251,7 +241,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       final notes = _notesController.text.trim();
 
       if (name.isEmpty || dosage.isEmpty) {
-        throw Exception('İlaç adı ve doz bilgisi gereklidir');
+        throw Exception(
+          AppLocalizations.of(
+            context,
+          )!.translate('medication_name_and_dosage_required'),
+        );
       }
 
       final medication = Medication(
@@ -273,7 +267,18 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       }
 
       // Bildirimleri yeniden programla
-      await _notificationService.scheduleNotificationForMedication(medication);
+      await _notificationService.scheduleNotificationForMedication(
+        medication,
+        medicationTimeText: AppLocalizations.of(
+          context,
+        )!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(
+          context,
+        )!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(
+          context,
+        )!.translate('with_food_notification'),
+      );
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -282,7 +287,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error')}: $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -304,11 +311,14 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -353,8 +363,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               children: [
                 Text(
                   widget.medication == null
-                      ? 'Yeni İlaç Ekle'
-                      : 'İlacı Düzenle',
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('add_new_medication')
+                      : AppLocalizations.of(
+                          context,
+                        )!.translate('edit_medication'),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -363,8 +377,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 ),
                 Text(
                   widget.medication == null
-                      ? 'İlaç bilgilerini girin'
-                      : 'İlaç bilgilerini güncelleyin',
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('enter_medication_details')
+                      : AppLocalizations.of(
+                          context,
+                        )!.translate('update_medication_details'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.8),
@@ -393,16 +411,21 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            _buildSectionTitle('İlaç Bilgileri', Icons.medication),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('medication_details'),
+              Icons.medication,
+            ),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _nameController,
-              label: 'İlaç Adı',
-              hint: 'Örn: Aspirin',
+              label: AppLocalizations.of(context)!.translate('medication_name'),
+              hint: AppLocalizations.of(context)!.translate('example_aspirin'),
               icon: Icons.local_pharmacy,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'İlaç adı gereklidir';
+                  return AppLocalizations.of(
+                    context,
+                  )!.translate('medication_name_required');
                 }
                 return null;
               },
@@ -410,31 +433,42 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             const SizedBox(height: 16),
             _buildTextField(
               controller: _dosageController,
-              label: 'Doz',
-              hint: 'Örn: 500mg, 1 tablet',
+              label: AppLocalizations.of(context)!.translate('dosage'),
+              hint: AppLocalizations.of(context)!.translate('example_500mg'),
               icon: Icons.straighten,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Doz bilgisi gereklidir';
+                  return AppLocalizations.of(
+                    context,
+                  )!.translate('dosage_required');
                 }
                 return null;
               },
             ),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Kullanım Sıklığı', Icons.schedule),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('usage_frequency'),
+              Icons.schedule,
+            ),
             const SizedBox(height: 20),
             _buildFrequencySelector(),
             const SizedBox(height: 20),
             _buildTimeSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Mide Durumu', Icons.restaurant),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('stomach_condition'),
+              Icons.restaurant,
+            ),
             const SizedBox(height: 20),
             _buildStomachConditionSelector(),
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Döngü Ayarları', Icons.loop),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('cycle_settings'),
+              Icons.loop,
+            ),
             const SizedBox(height: 20),
             _buildContinuousToggle(),
             if (!_isContinuous) ...[
@@ -443,12 +477,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             ],
             const SizedBox(height: 30),
 
-            _buildSectionTitle('Notlar (İsteğe Bağlı)', Icons.note),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.translate('notes_optional'),
+              Icons.note,
+            ),
             const SizedBox(height: 20),
             _buildTextField(
               controller: _notesController,
-              label: 'Notlar',
-              hint: 'İlaçla ilgili özel notlarınız...',
+              label: AppLocalizations.of(context)!.translate('notes'),
+              hint: AppLocalizations.of(
+                context,
+              )!.translate('special_notes_about_medication'),
               icon: Icons.edit_note,
               maxLines: 3,
             ),
@@ -467,10 +506,14 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A8E8).withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF00A8E8), size: 20),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
         ),
         const SizedBox(width: 12),
         Text(
@@ -506,7 +549,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFF00A8E8)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
           labelStyle: TextStyle(color: Colors.grey[700]),
@@ -526,8 +569,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       child: DropdownButtonFormField<String>(
         value: _frequency,
         onChanged: _onFrequencyChanged,
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.repeat, color: Color(0xFF00A8E8)),
+        decoration: InputDecoration(
+          prefixIcon: Icon(
+            Icons.repeat,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(16),
         ),
@@ -548,16 +594,19 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Kullanım Saatleri',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.translate('usage_times'),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Color(0xFF00A8E8)),
+              icon: Icon(
+                Icons.add_circle,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               onPressed: () => _selectTime(_selectedTimes.length),
             ),
           ],
@@ -570,8 +619,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             for (int i = 0; i < _selectedTimes.length; i++)
               Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
@@ -644,11 +696,13 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF4CAF50) : Colors.grey[100],
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF4CAF50)
+                      ? Theme.of(context).colorScheme.primary
                       : Colors.grey[300]!,
                 ),
               ),
@@ -694,26 +748,31 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.loop, color: Color(0xFF4CAF50)),
+            child: Icon(
+              Icons.loop,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Sürekli Döngü',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.translate('continuous_cycle'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                 ),
                 Text(
-                  'İlaç günlük olarak otomatik tekrarlanır',
+                  AppLocalizations.of(
+                    context,
+                  )!.translate('medication_repeats_daily'),
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
@@ -722,7 +781,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           Switch(
             value: _isContinuous,
             onChanged: (value) => setState(() => _isContinuous = value),
-            activeColor: const Color(0xFF4CAF50),
+            activeColor: Theme.of(context).colorScheme.primary,
           ),
         ],
       ),
@@ -734,7 +793,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       children: [
         Expanded(
           child: _buildDateSelector(
-            'Başlangıç Tarihi',
+            AppLocalizations.of(context)!.translate('start_date'),
             _startDate,
             () => _selectDate(true),
             Icons.play_arrow,
@@ -743,7 +802,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildDateSelector(
-            'Bitiş Tarihi',
+            AppLocalizations.of(context)!.translate('end_date'),
             _endDate,
             () => _selectDate(false),
             Icons.stop,
@@ -773,7 +832,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           children: [
             Row(
               children: [
-                Icon(icon, color: const Color(0xFF4CAF50), size: 18),
+                Icon(
+                  icon,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -789,7 +852,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             Text(
               date != null
                   ? '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}'
-                  : 'Tarih seçin',
+                  : AppLocalizations.of(context)!.translate('select_date'),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -805,13 +868,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget _buildSaveButton() {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.secondary,
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(0.3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -841,10 +907,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 const SizedBox(width: 12),
                 Text(
                   _isLoading
-                      ? 'Kaydediliyor...'
+                      ? AppLocalizations.of(context)!.translate('saving')
                       : widget.medication == null
-                      ? 'İlacı Kaydet'
-                      : 'Değişiklikleri Kaydet',
+                      ? AppLocalizations.of(
+                          context,
+                        )!.translate('save_medication')
+                      : AppLocalizations.of(context)!.translate('save_changes'),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
