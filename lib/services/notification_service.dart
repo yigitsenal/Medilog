@@ -224,4 +224,36 @@ class NotificationService {
       await _notifications.cancel(logId);
     }
   }
+
+  // Hızlı tek seferlik hatırlatıcı (yalnızca bildirim gösterir)
+  Future<void> scheduleQuickReminder({
+    required DateTime scheduledTime,
+    String title = 'Hatırlatıcı',
+    String body = 'İlaç hatırlatıcısı',
+  }) async {
+    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    await _notifications.zonedSchedule(
+      tzTime.millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      tzTime,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'quick_reminders',
+          'Quick Reminders',
+          channelDescription: 'Single-shot reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
 }

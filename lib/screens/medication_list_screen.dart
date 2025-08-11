@@ -5,7 +5,9 @@ import '../services/notification_service.dart';
 import 'add_medication_screen.dart';
 
 class MedicationListScreen extends StatefulWidget {
-  const MedicationListScreen({super.key});
+  final bool isEmbedded;
+  final VoidCallback? onBackToHome;
+  const MedicationListScreen({super.key, this.isEmbedded = false, this.onBackToHome});
 
   @override
   State<MedicationListScreen> createState() => _MedicationListScreenState();
@@ -62,7 +64,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Veriler yüklenirken hata oluştu: $e'),
-backgroundColor: Color(0xFF00A8E8),
+            backgroundColor: const Color(0xFF00A8E8),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -100,9 +102,9 @@ backgroundColor: Color(0xFF00A8E8),
                   ? 'İlaç aktif edildi'
                   : 'İlaç devre dışı bırakıldı',
             ),
-backgroundColor: updatedMedication.isActive
-                ? Color(0xFF00A8E8)
-                : Color(0xFF0077BE),
+            backgroundColor: updatedMedication.isActive
+                ? const Color(0xFF00A8E8)
+                : const Color(0xFF0077BE),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -307,65 +309,51 @@ backgroundColor: updatedMedication.isActive
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isEmbedded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('İlaç Listesi'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ),
+        body: _buildEmbeddedBody(),
+      );
+    }
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+      appBar: AppBar(title: const Text('İlaç Listesi')),
+      body: _buildEmbeddedBody(),
+    );
+  }
+
+  Widget _buildEmbeddedBody() {
+    return Column(
+      children: [
+        Expanded(child: _buildContent()),
+      ],
+    );
+  }
+
+  Widget _buildFab() {
+    return FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AddMedicationScreen(),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: _buildContent(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE)],
-          ),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00A8E8).withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddMedicationScreen(),
-              ),
-            ).then((_) => _loadMedications());
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-          tooltip: 'Yeni İlaç Ekle',
-        ),
-      ),
+        ).then((_) => _loadMedications());
+      },
+      child: const Icon(Icons.add),
+      tooltip: 'Yeni İlaç Ekle',
     );
   }
 
@@ -385,36 +373,14 @@ backgroundColor: updatedMedication.isActive
             ),
           ),
           const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'İlaç Listesi',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  '${_medications.length} ilaç kayıtlı',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: _loadMedications,
+          const Expanded(
+            child: Text(
+              'İlaç Listesi',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -425,19 +391,7 @@ backgroundColor: updatedMedication.isActive
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6A1B9A)),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'İlaçlar yükleniyor...',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
+        child: CircularProgressIndicator(),
       );
     }
 
@@ -449,7 +403,6 @@ backgroundColor: updatedMedication.isActive
       opacity: _fadeAnimation,
       child: RefreshIndicator(
         onRefresh: _loadMedications,
-        color: const Color(0xFF6A1B9A),
         child: ListView.builder(
           padding: const EdgeInsets.all(20),
           itemCount: _medications.length,

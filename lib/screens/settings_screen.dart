@@ -9,8 +9,10 @@ import 'package:permission_handler/permission_handler.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
+  final bool isEmbedded;
+  final VoidCallback? onBackToHome;
   
-  const SettingsScreen({super.key, this.onSettingsChanged});
+  const SettingsScreen({super.key, this.onSettingsChanged, this.isEmbedded = false, this.onBackToHome});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -192,20 +194,31 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() {
       _userPreferences = newPreferences;
     });
+    if (mounted) {
+      widget.onSettingsChanged?.call();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    if (widget.isEmbedded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Ayarlar'),
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.pop(context);
+              }
+            },
           ),
         ),
-        child: SafeArea(
+        body: SafeArea(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : FadeTransition(
@@ -213,28 +226,31 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: _buildMainContent(),
                 ),
         ),
-      ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Ayarlar'), scrolledUnderElevation: 0),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: _buildMainContent(),
+            ),
     );
   }
 
   Widget _buildMainContent() {
-    return CustomScrollView(
-      slivers: [
-        _buildAppBar(),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                _buildUserProfileCard(),
-                const SizedBox(height: 20),
-                _buildSettingsGroups(),
-                const SizedBox(height: 100), // Space for bottom navigation
-              ],
-            ),
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _buildUserProfileCard(),
+          const SizedBox(height: 20),
+          _buildSettingsGroups(),
+          const SizedBox(height: 100),
+        ],
+      ),
     );
   }
 

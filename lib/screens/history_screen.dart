@@ -5,7 +5,9 @@ import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  final bool isEmbedded;
+  final VoidCallback? onBackToHome;
+  const HistoryScreen({super.key, this.isEmbedded = false, this.onBackToHome});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -235,41 +237,45 @@ class _HistoryScreenState extends State<HistoryScreen>
         .where((log) => !log.isTaken && !log.isSkipped)
         .length;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+    if (widget.isEmbedded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('İlaç Geçmişi'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.pop(context);
+              }
+            },
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: _buildContent(
-                    groupedLogs,
-                    totalLogs,
-                    takenLogs,
-                    skippedLogs,
-                    pendingLogs,
-                  ),
-                ),
+        body: Column(
+          children: [
+            Expanded(
+              child: _buildContent(
+                groupedLogs,
+                totalLogs,
+                takenLogs,
+                skippedLogs,
+                pendingLogs,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('İlaç Geçmişi')),
+      body: _buildContent(
+        groupedLogs,
+        totalLogs,
+        takenLogs,
+        skippedLogs,
+        pendingLogs,
       ),
     );
   }

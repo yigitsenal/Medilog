@@ -12,8 +12,15 @@ import 'statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
+  final bool isEmbedded;
+  final ValueChanged<int>? onNavigateTab;
   
-  const HomeScreen({super.key, this.onSettingsChanged});
+  const HomeScreen({
+    super.key,
+    this.onSettingsChanged,
+    this.isEmbedded = false,
+    this.onNavigateTab,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -171,26 +178,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final gradient = const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+      ),
+    );
+
+    final body = SafeArea(
+      child: _isLoading
+          ? _buildLoadingScreen()
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: _buildMainContent(),
+              ),
+            ),
+    );
+
+    if (widget.isEmbedded) {
+      return Scaffold(body: body);
+    }
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
-          ),
-        ),
-        child: SafeArea(
-          child: _isLoading
-              ? _buildLoadingScreen()
-              : FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: _buildMainContent(),
-                  ),
-                ),
-        ),
+        decoration: gradient,
+        child: body,
       ),
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -199,19 +214,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildLoadingScreen() {
-    return const Center(
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            strokeWidth: 3,
-          ),
-          SizedBox(height: 20),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 20),
           Text(
             'Yükleniyor...',
             style: TextStyle(
-              color: Colors.white,
+              color: onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -234,11 +247,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             _buildHeader(),
             const SizedBox(height: 30),
+            _buildTodaysSchedule(),
+            const SizedBox(height: 30),
             _buildQuickStats(),
             const SizedBox(height: 30),
             _buildQuickActions(),
-            const SizedBox(height: 30),
-            _buildTodaysSchedule(),
             const SizedBox(height: 100), // Space for FAB
           ],
         ),
@@ -249,13 +262,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildHeader() {
     final now = DateTime.now();
     final formatter = DateFormat('d MMMM yyyy, EEEE', 'tr_TR');
+    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,12 +279,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.medical_services,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 28,
                 ),
               ),
@@ -279,19 +293,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Medilog',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: onSurface,
                       ),
                     ),
                     Text(
                       'Sağlık Takip Uygulamanız',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
+                        color: onSurface.withOpacity(0.7),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -304,22 +318,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.calendar_today,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Theme.of(context).colorScheme.primary,
                   size: 18,
                 ),
                 const SizedBox(width: 10),
                 Text(
                   formatter.format(now),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white,
+                    color: onSurface,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -338,15 +352,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .where((log) => !log.isTaken && !log.isSkipped)
         .length;
 
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Bugünkü Durum',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: onSurface,
           ),
         ),
         const SizedBox(height: 15),
@@ -385,61 +401,71 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildStatCard(String title, int count, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return AnimatedScale(
+      duration: const Duration(milliseconds: 200),
+      scale: 1.0,
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: 1.0,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildQuickActions() {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Hızlı Erişim',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: onSurface,
           ),
         ),
         const SizedBox(height: 15),
@@ -450,12 +476,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 'İstatistikler',
                 Icons.analytics,
                 Colors.purple,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const StatisticsScreen(),
-                  ),
-                ),
+                () {
+                  if (widget.onNavigateTab != null) {
+                    widget.onNavigateTab!(3);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const StatisticsScreen(),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -464,12 +496,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 'Ayarlar',
                 Icons.settings,
                 Colors.indigo,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged),
-                  ),
-                ),
+                () {
+                  if (widget.onNavigateTab != null) {
+                    widget.onNavigateTab!(4);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -482,12 +520,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 'Geçmiş',
                 Icons.history,
                 Colors.teal,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HistoryScreen(),
-                  ),
-                ),
+                () {
+                  if (widget.onNavigateTab != null) {
+                    widget.onNavigateTab!(2);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -496,12 +540,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 'İlaç Listesi',
                 Icons.list_alt,
                 Colors.orange,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MedicationListScreen(),
-                  ),
-                ),
+                () {
+                  if (widget.onNavigateTab != null) {
+                    widget.onNavigateTab!(1);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MedicationListScreen(),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -562,15 +612,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildTodaysSchedule() {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+         Text(
           'Bugünkü İlaçlar',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: onSurface,
           ),
         ),
         const SizedBox(height: 15),

@@ -6,7 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'services/location_service.dart'; // Konum servisini ekleyin
-import 'screens/home_screen.dart';
+import 'screens/app_shell.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,43 +46,52 @@ Future<void> _requestNotificationPermissions() async {
   }
 }
 
-class MedilogApp extends StatelessWidget {
+class MedilogApp extends StatefulWidget {
   const MedilogApp({super.key});
+
+  @override
+  State<MedilogApp> createState() => _MedilogAppState();
+}
+
+class _MedilogAppState extends State<MedilogApp> {
+  final SettingsService _settingsService = SettingsService();
+  bool _darkMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final isDark = await _settingsService.isDarkModeEnabled;
+    if (mounted) {
+      setState(() {
+        _darkMode = isDark;
+      });
+    }
+  }
+
+  void _handleSettingsChanged() async {
+    await _loadTheme();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Medilog',
-      theme: ThemeData(
-colorScheme: const ColorScheme.light(
-          primary: Color(0xFF00A8E8),
-          secondary: Color(0xFF007EA7),
-          background: Color(0xFFF0F8FF),
-          surface: Color(0xFFF0F8FF),
-          onPrimary: Colors.white,
-          onSecondary: Colors.white,
-          onBackground: Colors.black87,
-          onSurface: Colors.black87,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
-        cardTheme: const CardThemeData(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-        ),
-      ),
-      home: const HomeScreen(),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
+      locale: const Locale('tr', 'TR'),
+      supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: AppShell(onSettingsChanged: _handleSettingsChanged),
     );
   }
 }

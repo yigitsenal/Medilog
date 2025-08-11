@@ -4,7 +4,9 @@ import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  final bool isEmbedded;
+  final VoidCallback? onBackToHome;
+  const StatisticsScreen({super.key, this.isEmbedded = false, this.onBackToHome});
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -88,51 +90,56 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
+    if (widget.isEmbedded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('İstatistikler'),
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.pop(context);
+              }
+            },
           ),
         ),
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: _buildMainContent(),
-                ),
-        ),
-      ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FadeTransition(opacity: _fadeAnimation, child: _buildMainContent()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('İstatistikler'), scrolledUnderElevation: 0),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: _buildMainContent(),
+            ),
     );
   }
 
   Widget _buildMainContent() {
-    return CustomScrollView(
-      slivers: [
-        _buildAppBar(),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                _buildPeriodSelector(),
-                const SizedBox(height: 20),
-                _buildOverviewCards(),
-                const SizedBox(height: 20),
-                _buildComplianceChart(),
-                const SizedBox(height: 20),
-                _buildDailyBreakdown(),
-                const SizedBox(height: 20),
-                _buildMedicationBreakdown(),
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _buildPeriodSelector(),
+          const SizedBox(height: 20),
+          _buildOverviewCards(),
+          const SizedBox(height: 20),
+          _buildComplianceChart(),
+          const SizedBox(height: 20),
+          _buildDailyBreakdown(),
+          const SizedBox(height: 20),
+          _buildMedicationBreakdown(),
+          const SizedBox(height: 100),
+        ],
+      ),
     );
   }
 
