@@ -9,6 +9,8 @@ import 'medication_list_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'stock_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
@@ -246,7 +248,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            const SizedBox(height: 30),
+            const SizedBox(height: 16),
+            FutureBuilder<int>(
+              future: DatabaseHelper().getLowStockCount(threshold: 3),
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                if (count <= 0) return const SizedBox.shrink();
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text('Düşük stok uyarısı: $count ilaç kritik seviyede',
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                      TextButton(
+                        onPressed: () => _openStockDetails(),
+                        child: const Text('Detay'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
             _buildTodaysSchedule(),
             const SizedBox(height: 30),
             _buildQuickStats(),
@@ -256,6 +288,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ],
         ),
       ),
+    );
+  }
+
+  void _openStockDetails() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const StockDetailsScreen()),
     );
   }
 
@@ -473,41 +512,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'İstatistikler',
-                Icons.analytics,
-                Colors.purple,
-                () {
-                  if (widget.onNavigateTab != null) {
-                    widget.onNavigateTab!(3);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const StatisticsScreen(),
-                      ),
-                    );
-                  }
-                },
+                'Hızlı Hatırlatıcı',
+                Icons.alarm_add,
+                Colors.teal,
+                () => _showQuickReminderSheet(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'Ayarlar',
-                Icons.settings,
+                'Stok +1 / -1',
+                Icons.inventory_2,
                 Colors.indigo,
-                () {
-                  if (widget.onNavigateTab != null) {
-                    widget.onNavigateTab!(4);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingsScreen(onSettingsChanged: widget.onSettingsChanged),
-                      ),
-                    );
-                  }
-                },
+                () => _showStockQuickActions(),
               ),
             ),
           ],
@@ -517,41 +534,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'Geçmiş',
-                Icons.history,
-                Colors.teal,
-                () {
-                  if (widget.onNavigateTab != null) {
-                    widget.onNavigateTab!(2);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HistoryScreen(),
-                      ),
-                    );
-                  }
-                },
+                'En Yakın Eczane',
+                Icons.local_hospital,
+                Colors.purple,
+                () => _openNearestPharmacy(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'İlaç Listesi',
-                Icons.list_alt,
+                'Sessize Al (1s)',
+                Icons.notifications_off,
                 Colors.orange,
-                () {
-                  if (widget.onNavigateTab != null) {
-                    widget.onNavigateTab!(1);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MedicationListScreen(),
-                      ),
-                    );
-                  }
-                },
+                () => _muteNotificationsFor(Duration(hours: 1)),
               ),
             ),
           ],
@@ -609,6 +604,116 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  Future<void> _showQuickReminderSheet() async {
+    final theme = Theme.of(context);
+    await showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            runSpacing: 8,
+            children: [
+              const Text('Hızlı Hatırlatıcı', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  for (final minutes in [1, 5, 10, 15])
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final now = DateTime.now().add(Duration(minutes: minutes));
+                        await NotificationService().scheduleQuickReminder(
+                          scheduledTime: now,
+                          title: 'Hızlı Hatırlatıcı',
+                          body: '$minutes dakika sonra hatırlatma',
+                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$minutes dk sonraya hatırlatıcı kuruldu')),
+                          );
+                        }
+                      },
+                      child: Text('+$minutes dk'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showStockQuickActions() async {
+    if (_medications.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aktif ilaç bulunamadı')),
+      );
+      return;
+    }
+    final med = _medications.first; // örnek: ilk aktif ilaç
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stok Güncelle'),
+        content: Text('${med.name} için stok +1 / -1'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await DatabaseHelper().decrementStock(med.id!);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Stok -1')),
+                );
+              }
+            },
+            child: const Text('-1'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await DatabaseHelper().incrementStock(med.id!);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Stok +1')),
+                );
+              }
+            },
+            child: const Text('+1'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openNearestPharmacy() async {
+    final query = Uri.encodeComponent('eczane');
+    final url = Uri.parse('https://www.google.com/maps/search/$query');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harita açılamadı')),
+      );
+    }
+  }
+
+  Future<void> _muteNotificationsFor(Duration duration) async {
+    // Basit: kullanıcıya bilgi mesajı göster
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Bildirimler ${duration.inHours} saat sessize alındı (demo)')),
+    );
+    // Not: Kalıcı uygulama sessize alma için OS-uyumlu ayarlar veya app içi flag kullanılabilir.
   }
 
   Widget _buildTodaysSchedule() {

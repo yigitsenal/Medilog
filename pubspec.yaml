@@ -62,6 +62,8 @@ dependencies:
   # UI Components
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+  url_launcher: ^6.3.0
+  http: ^1.2.1
 
   # Local Database
   sqflite: ^2.3.0
