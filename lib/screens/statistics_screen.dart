@@ -185,6 +185,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Widget _buildPeriodSelector() {
+    final loc = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -200,9 +201,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       child: Row(
         children: [
-          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_7_days'), 'week'),
-          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_month'), 'month'),
-          _buildPeriodButton(AppLocalizations.of(context)!.translate('last_year'), 'year'),
+          _buildPeriodButton(loc?.translate('last_7_days') ?? 'Son 7 Gün', 'week'),
+          _buildPeriodButton(loc?.translate('last_month') ?? 'Son Ay', 'month'),
+          _buildPeriodButton(loc?.translate('last_year') ?? 'Son Yıl', 'year'),
         ],
       ),
     );

@@ -8,6 +8,7 @@ import 'services/settings_service.dart';
 import 'services/location_service.dart'; // Konum servisini ekleyin
 import 'screens/app_shell.dart';
 import 'theme/app_theme.dart';
+import 'services/localization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,7 @@ void main() async {
   // Günlük ilaç loglarını oluştur (sürekli döngü için)
   await notificationService.createDailyMedicationLogs();
 
-  runApp(const MedilogApp());
+  runApp(MedilogApp(key: MedilogApp.appKey));
 }
 
 Future<void> _requestNotificationPermissions() async {
@@ -48,6 +49,11 @@ Future<void> _requestNotificationPermissions() async {
 
 class MedilogApp extends StatefulWidget {
   const MedilogApp({super.key});
+  static final GlobalKey<_MedilogAppState> appKey = GlobalKey<_MedilogAppState>();
+
+  static void setLocale(BuildContext context, Locale newLocale) {
+    appKey.currentState?._setLocale(newLocale);
+  }
 
   @override
   State<MedilogApp> createState() => _MedilogAppState();
@@ -56,11 +62,13 @@ class MedilogApp extends StatefulWidget {
 class _MedilogAppState extends State<MedilogApp> {
   final SettingsService _settingsService = SettingsService();
   bool _darkMode = false;
+  Locale _locale = const Locale('tr', 'TR');
 
   @override
   void initState() {
     super.initState();
     _loadTheme();
+    _loadLocale();
   }
 
   Future<void> _loadTheme() async {
@@ -72,8 +80,24 @@ class _MedilogAppState extends State<MedilogApp> {
     }
   }
 
+  Future<void> _loadLocale() async {
+    try {
+      final lang = await _settingsService.currentLanguage; // 'tr' | 'en'
+      if (mounted) {
+        setState(() {
+          _locale = lang == 'en' ? const Locale('en', '') : const Locale('tr', 'TR');
+        });
+      }
+    } catch (_) {}
+  }
+
   void _handleSettingsChanged() async {
     await _loadTheme();
+    await _loadLocale();
+  }
+
+  void _setLocale(Locale locale) {
+    setState(() => _locale = locale);
   }
 
   @override
@@ -84,9 +108,10 @@ class _MedilogAppState extends State<MedilogApp> {
       darkTheme: AppTheme.dark(),
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('tr', 'TR'),
-      supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
+      locale: _locale,
+      supportedLocales: const [Locale('tr', 'TR'), Locale('en', '')],
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

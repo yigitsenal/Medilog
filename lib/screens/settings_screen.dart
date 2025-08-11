@@ -758,15 +758,16 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showLanguageDialog() {
+    final loc = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('language_selection')),
+        title: Text(loc?.translate('language_selection') ?? 'Dil Seçimi'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('turkish')),
+              title: Text(loc?.translate('turkish') ?? 'Türkçe'),
               leading: Radio<String>(
                 value: 'tr',
                 groupValue: _userPreferences?.language,
@@ -774,13 +775,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   _updatePreferences(
                     _userPreferences!.copyWith(language: value),
                   );
-                  MedilogApp.setLocale(context, const Locale('tr', ''));
+                  MedilogApp.setLocale(context, const Locale('tr', 'TR'));
                   Navigator.pop(context);
                 },
               ),
             ),
             ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('english')),
+              title: Text(loc?.translate('english') ?? 'English'),
               leading: Radio<String>(
                 value: 'en',
                 groupValue: _userPreferences?.language,
