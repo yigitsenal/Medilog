@@ -4,18 +4,21 @@ import '../models/medication.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../widgets/banner_ad_widget.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/localization_service.dart';
 import 'stock_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
   final bool isEmbedded;
   final ValueChanged<int>? onNavigateTab;
+  static final GlobalKey<_HomeScreenState> homeKey = GlobalKey<_HomeScreenState>();
   
   const HomeScreen({
     super.key,
@@ -38,6 +41,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+
+  // Public method to reload today's data from outside
+  void reloadToday() {
+    _loadTodayData();
+  }
 
   @override
   void initState() {
@@ -111,12 +119,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     try {
       final updatedLog = log.copyWith(isTaken: true, takenTime: DateTime.now());
       await _dbHelper.updateMedicationLog(updatedLog);
+      
+      // İlaç içildiğinde stoktan düş
+      await DatabaseHelper().decrementStock(log.medicationId);
+      
       await _loadTodayData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('İlaç alındı olarak işaretlendi ✓'),
+            content: const Text('İlaç alındı olarak işaretlendi ✓ (Stok -1)'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -284,6 +296,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _buildQuickStats(),
             const SizedBox(height: 30),
             _buildQuickActions(),
+            const SizedBox(height: 20),
+            // Banner reklam ekle
+            const BannerAdWidget(
+              height: 60,
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              showBorder: true,
+            ),
             const SizedBox(height: 100), // Space for FAB
           ],
         ),
@@ -300,7 +319,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final formatter = DateFormat('d MMMM yyyy, EEEE', 'tr_TR');
+    final locale = Localizations.localeOf(context).languageCode == 'tr' ? 'tr_TR' : 'en_US';
+    final formatter = DateFormat('d MMMM yyyy, EEEE', locale);
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Container(
@@ -333,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Medilog',
+                      AppLocalizations.of(context)!.translate('medilog'),
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -341,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     Text(
-                      'Sağlık Takip Uygulamanız',
+                      AppLocalizations.of(context)!.translate('your_health_companion'),
                       style: TextStyle(
                         fontSize: 14,
                         color: onSurface.withOpacity(0.7),
@@ -397,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bugünkü Durum',
+          AppLocalizations.of(context)!.translate('todays_status'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -409,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildStatCard(
-                'İçildi',
+                AppLocalizations.of(context)!.translate('taken_status'),
                 takenCount,
                 Colors.green,
                 Icons.check_circle,
@@ -418,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Atlandı',
+                AppLocalizations.of(context)!.translate('skipped_status'),
                 skippedCount,
                 Colors.orange,
                 Icons.cancel,
@@ -427,10 +447,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Bekliyor',
+                AppLocalizations.of(context)!.translate('pending'),
                 pendingCount,
                 Colors.blue,
-                Icons.schedule,
+                Icons.access_time,
               ),
             ),
           ],
@@ -500,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Hızlı Erişim',
+          AppLocalizations.of(context)!.translate('quick_actions'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -512,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'Hızlı Hatırlatıcı',
+                AppLocalizations.of(context)!.translate('send_test_notification'),
                 Icons.alarm_add,
                 Colors.teal,
                 () => _showQuickReminderSheet(),
@@ -521,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'Stok +1 / -1',
+                'Stock +1 / -1',
                 Icons.inventory_2,
                 Colors.indigo,
                 () => _showStockQuickActions(),
@@ -534,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'En Yakın Eczane',
+                AppLocalizations.of(context)!.translate('details'),
                 Icons.local_hospital,
                 Colors.purple,
                 () => _openNearestPharmacy(),
@@ -543,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickActionCard(
-                'Sessize Al (1s)',
+                AppLocalizations.of(context)!.translate('notifications_muted_hours').replaceFirst('{hours}', '1'),
                 Icons.notifications_off,
                 Colors.orange,
                 () => _muteNotificationsFor(Duration(hours: 1)),
@@ -621,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Wrap(
             runSpacing: 8,
             children: [
-              const Text('Hızlı Hatırlatıcı', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              Text(AppLocalizations.of(context)!.translate('send_test_notification'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -633,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         final now = DateTime.now().add(Duration(minutes: minutes));
                         await NotificationService().scheduleQuickReminder(
                           scheduledTime: now,
-                          title: 'Hızlı Hatırlatıcı',
+                          title: AppLocalizations.of(context)!.translate('send_test_notification'),
                           body: '$minutes dakika sonra hatırlatma',
                         );
                         if (mounted) {
@@ -656,43 +676,102 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _showStockQuickActions() async {
     if (_medications.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aktif ilaç bulunamadı')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.translate('no_active_medication'))),
       );
       return;
     }
-    final med = _medications.first; // örnek: ilk aktif ilaç
-    await showDialog(
+
+    // İlaç seçme dialog'u
+    final selectedMedication = await showDialog<Medication>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Stok Güncelle'),
-        content: Text('${med.name} için stok +1 / -1'),
+        title: Text(AppLocalizations.of(context)!.translate('select_medication')),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _medications.length,
+            itemBuilder: (context, index) {
+              final med = _medications[index];
+              return ListTile(
+                leading: const Icon(Icons.medication),
+                title: Text(med.name),
+                subtitle: Text('Mevcut stok: ${med.stock}'),
+                onTap: () => Navigator.pop(context, med),
+              );
+            },
+          ),
+        ),
         actions: [
           TextButton(
-            onPressed: () async {
-              await DatabaseHelper().decrementStock(med.id!);
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Stok -1')),
-                );
-              }
-            },
-            child: const Text('-1'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await DatabaseHelper().incrementStock(med.id!);
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Stok +1')),
-                );
-              }
-            },
-            child: const Text('+1'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
           ),
         ],
       ),
+    );
+
+    if (selectedMedication == null) return;
+
+    // Stok güncelleme dialog'u (kapanmadan sayı güncellensin)
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        int current = selectedMedication.stock;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: Text('${selectedMedication.name} - ${AppLocalizations.of(context)!.translate('update_stock')}'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(AppLocalizations.of(context)!.translate('current_stock').replaceFirst('{count}', current.toString())), 
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await DatabaseHelper().decrementStock(selectedMedication.id!);
+                        if (mounted) {
+                          setState(() => current = (current - 1).clamp(0, 1 << 31));
+                          _loadTodayData();
+                        }
+                      },
+                      icon: const Icon(Icons.remove),
+                      label: const Text('-1'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await DatabaseHelper().incrementStock(selectedMedication.id!);
+                        if (mounted) {
+                          setState(() => current = current + 1);
+                          _loadTodayData();
+                        }
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('+1'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(AppLocalizations.of(context)!.translate('close')),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -711,7 +790,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _muteNotificationsFor(Duration duration) async {
     // Basit: kullanıcıya bilgi mesajı göster
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Bildirimler ${duration.inHours} saat sessize alındı (demo)')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.translate('notifications_muted_hours').replaceFirst('{hours}', duration.inHours.toString()))),
     );
     // Not: Kalıcı uygulama sessize alma için OS-uyumlu ayarlar veya app içi flag kullanılabilir.
   }
@@ -722,7 +801,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
          Text(
-          'Bugünkü İlaçlar',
+          AppLocalizations.of(context)!.translate('todays_medications'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -873,6 +952,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.inventory, size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Stok: ${medication.stock}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

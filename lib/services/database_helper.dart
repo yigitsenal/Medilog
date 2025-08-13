@@ -21,7 +21,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'medilog.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -39,7 +39,8 @@ class DatabaseHelper {
         notes TEXT,
         startDate INTEGER,
         endDate INTEGER,
-        isActive INTEGER NOT NULL DEFAULT 1
+        isActive INTEGER NOT NULL DEFAULT 1,
+        stock INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -78,6 +79,33 @@ class DatabaseHelper {
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS medication_stocks(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          medicationId INTEGER NOT NULL,
+          currentStock INTEGER NOT NULL DEFAULT 0,
+          minimumStock INTEGER NOT NULL DEFAULT 5,
+          maximumStock INTEGER NOT NULL DEFAULT 30,
+          unit TEXT NOT NULL DEFAULT 'tablet',
+          lastUpdated TEXT NOT NULL,
+          expiryDate TEXT,
+          batchNumber TEXT,
+          costPerUnit REAL,
+          pharmacy TEXT,
+          notes TEXT,
+          UNIQUE(medicationId)
+        )
+      ''');
+    }
+    
+    if (oldVersion < 3) {
+      // Add stock column to medications table
+      await db.execute('ALTER TABLE medications ADD COLUMN stock INTEGER NOT NULL DEFAULT 0');
+    }
+    
+    if (oldVersion < 4) {
+      // Drop and recreate medication_stocks table to ensure all columns exist
+      await db.execute('DROP TABLE IF EXISTS medication_stocks');
+      await db.execute('''
+        CREATE TABLE medication_stocks(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           medicationId INTEGER NOT NULL,
           currentStock INTEGER NOT NULL DEFAULT 0,
@@ -271,6 +299,47 @@ class DatabaseHelper {
     return await db.delete('medication_logs', where: 'id = ?', whereArgs: [id]);
   }
 
+  /// Deletes all pending (not taken and not skipped) logs for the given medication
+  /// on the provided date (00:00 - 23:59:59).
+  Future<void> deletePendingLogsForMedicationOnDate(int medicationId, DateTime date) async {
+    final db = await database;
+    final DateTime startOfDay = DateTime(date.year, date.month, date.day);
+    final DateTime endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    await db.delete(
+      'medication_logs',
+      where: 'medicationId = ? AND isTaken = 0 AND isSkipped = 0 AND scheduledTime >= ? AND scheduledTime <= ?',
+      whereArgs: [
+        medicationId,
+        startOfDay.millisecondsSinceEpoch,
+        endOfDay.millisecondsSinceEpoch,
+      ],
+    );
+  }
+
+  /// Returns all logs for the given medication on the provided date (any status)
+  Future<List<MedicationLog>> getLogsForMedicationOnDate(int medicationId, DateTime date) async {
+    final DateTime startOfDay = DateTime(date.year, date.month, date.day);
+    final DateTime endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    final List<MedicationLog> logs = await getLogsByDateRange(startOfDay, endOfDay);
+    return logs.where((l) => l.medicationId == medicationId).toList();
+  }
+
+  /// Deletes all logs (any status) for the given medication on the provided date
+  Future<void> deleteAllLogsForMedicationOnDate(int medicationId, DateTime date) async {
+    final db = await database;
+    final DateTime startOfDay = DateTime(date.year, date.month, date.day);
+    final DateTime endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    await db.delete(
+      'medication_logs',
+      where: 'medicationId = ? AND scheduledTime >= ? AND scheduledTime <= ?',
+      whereArgs: [
+        medicationId,
+        startOfDay.millisecondsSinceEpoch,
+        endOfDay.millisecondsSinceEpoch,
+      ],
+    );
+  }
+
   // STOCK HELPERS
   Future<MedicationStock?> getStockByMedicationId(int medicationId) async {
     final db = await database;
@@ -324,17 +393,13 @@ class DatabaseHelper {
 
   Future<void> incrementStock(int medicationId, {int by = 1}) async {
     final db = await database;
-    final existing = await getStockByMedicationId(medicationId);
-    if (existing == null) {
-      await upsertStock(medicationId: medicationId, currentStock: by);
-    } else {
+    final medication = await getMedication(medicationId);
+    if (medication != null) {
+      final newStock = medication.stock + by;
       await db.update(
-        'medication_stocks',
-        {
-          'currentStock': existing.currentStock + by,
-          'lastUpdated': DateTime.now().toIso8601String(),
-        },
-        where: 'medicationId = ?',
+        'medications',
+        {'stock': newStock},
+        where: 'id = ?',
         whereArgs: [medicationId],
       );
     }
@@ -342,18 +407,13 @@ class DatabaseHelper {
 
   Future<void> decrementStock(int medicationId, {int by = 1}) async {
     final db = await database;
-    final existing = await getStockByMedicationId(medicationId);
-    if (existing == null) {
-      await upsertStock(medicationId: medicationId, currentStock: 0);
-    } else {
-      final newValue = (existing.currentStock - by).clamp(0, 1 << 31);
+    final medication = await getMedication(medicationId);
+    if (medication != null) {
+      final newStock = (medication.stock - by).clamp(0, 1 << 31);
       await db.update(
-        'medication_stocks',
-        {
-          'currentStock': newValue,
-          'lastUpdated': DateTime.now().toIso8601String(),
-        },
-        where: 'medicationId = ?',
+        'medications',
+        {'stock': newStock},
+        where: 'id = ?',
         whereArgs: [medicationId],
       );
     }

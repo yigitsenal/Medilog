@@ -87,6 +87,9 @@ dependencies:
   google_maps_flutter: ^2.12.3
   geocoding: ^4.0.0
 
+  # Google AdMob
+  google_mobile_ads: ^4.0.0
+
   # Background tasks - removed workmanager due to compatibility issues
   # workmanager: ^0.5.2
 

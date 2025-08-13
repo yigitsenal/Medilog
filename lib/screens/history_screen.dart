@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/medication.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
+import '../services/localization_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -78,7 +79,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Veriler yüklenirken hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_loading_data') + ': $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -240,7 +241,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     if (widget.isEmbedded) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('İlaç Geçmişi'),
+          title: Text(AppLocalizations.of(context)!.translate('medication_history')),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -269,7 +270,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('İlaç Geçmişi')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.translate('medication_history'))),
       body: _buildContent(
         groupedLogs,
         totalLogs,
@@ -423,8 +424,8 @@ class _HistoryScreenState extends State<HistoryScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Görüntülenen Tarih',
+                Text(
+                  AppLocalizations.of(context)!.translate('displayed_date'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Color(0xFFE91E63),
@@ -435,10 +436,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                 Text(
                   _selectedDateRange != null
                       ? '${DateFormat('d MMM y').format(_selectedDateRange!.start)} - ${DateFormat('d MMM y').format(_selectedDateRange!.end)}'
-                      : DateFormat(
-                          'd MMMM yyyy EEEE',
-                          'tr_TR',
-                        ).format(_selectedDate),
+                      : DateFormat('d MMMM yyyy EEEE', Localizations.localeOf(context).languageCode == 'tr' ? 'tr_TR' : 'en_US').format(_selectedDate),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -457,7 +455,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               child: IconButton(
                 icon: const Icon(Icons.clear, color: Colors.orange),
                 onPressed: _clearDateRange,
-                tooltip: 'Filtreyi Temizle',
+                tooltip: AppLocalizations.of(context)!.translate('clear_filter'),
               ),
             ),
         ],
@@ -481,7 +479,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             child: Row(
               children: [
                 _buildStatCard(
-                  'İçildi',
+                  AppLocalizations.of(context)!.translate('taken_status'),
                   takenLogs,
                   Icons.check_circle,
                   Colors.green,
@@ -489,7 +487,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                 ),
                 const SizedBox(width: 12),
                 _buildStatCard(
-                  'Atlandı',
+                  AppLocalizations.of(context)!.translate('skipped_status'),
                   skippedLogs,
                   Icons.schedule,
                   Colors.orange,
@@ -497,7 +495,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                 ),
                 const SizedBox(width: 12),
                 _buildStatCard(
-                  'Bekliyor',
+                  AppLocalizations.of(context)!.translate('pending'),
                   pendingLogs,
                   Icons.pending,
                   Colors.grey,
@@ -645,8 +643,8 @@ class _HistoryScreenState extends State<HistoryScreen>
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Bu tarih için kayıt bulunamadı',
+          Text(
+            AppLocalizations.of(context)!.translate('no_records_found_for_this_date'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -655,7 +653,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Farklı bir tarih seçerek geçmiş kayıtlarınızı görüntüleyebilirsiniz',
+            AppLocalizations.of(context)!.translate('you_can_view_past_records_by_selecting_a_different_date'),
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -675,15 +673,15 @@ class _HistoryScreenState extends State<HistoryScreen>
     if (log.isTaken) {
       statusColor = Colors.green;
       statusIcon = Icons.check_circle;
-      statusText = 'İçildi';
+      statusText = AppLocalizations.of(context)!.translate('taken_status');
     } else if (log.isSkipped) {
       statusColor = Colors.orange;
       statusIcon = Icons.schedule;
-      statusText = 'Atlandı';
+      statusText = AppLocalizations.of(context)!.translate('skipped_status');
     } else {
       statusColor = Colors.grey;
       statusIcon = Icons.pending;
-      statusText = 'Bekliyor';
+      statusText = AppLocalizations.of(context)!.translate('pending');
     }
 
     return Container(
@@ -729,18 +727,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Doz: ${medication.dosage}',
+                    AppLocalizations.of(context)!.translate('dosage') + ': ${medication.dosage}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   Text(
-                    'Saat: ${DateFormat('HH:mm').format(log.scheduledTime)}',
+                    AppLocalizations.of(context)!.translate('time') + ': ${DateFormat('HH:mm').format(log.scheduledTime)}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   if (medication.stomachCondition != 'either')
                     Text(
                       medication.stomachCondition == 'empty'
-                          ? 'Aç karına'
-                          : 'Tok karına',
+                          ? AppLocalizations.of(context)!.translate('empty_stomach')
+                          : AppLocalizations.of(context)!.translate('full_stomach'),
                       style: TextStyle(
                         color: const Color(0xFFE91E63),
                         fontSize: 12,
@@ -749,7 +747,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     ),
                   if (log.isTaken && log.takenTime != null)
                     Text(
-                      'İçilme zamanı: ${DateFormat('HH:mm').format(log.takenTime!)}',
+                      AppLocalizations.of(context)!.translate('taken_time') + ': ${DateFormat('HH:mm').format(log.takenTime!)}',
                       style: const TextStyle(
                         color: Colors.green,
                         fontSize: 12,

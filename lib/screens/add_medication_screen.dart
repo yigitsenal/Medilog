@@ -18,6 +18,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _dosageController = TextEditingController();
+  final _stockController = TextEditingController();
   final _notesController = TextEditingController();
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -109,6 +110,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     _fadeController.dispose();
     _nameController.dispose();
     _dosageController.dispose();
+    _stockController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -119,6 +121,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
     _nameController.text = med.name;
     _dosageController.text = med.dosage;
+    _stockController.text = med.stock.toString();
     _notesController.text = med.notes ?? '';
     _frequency = med.frequency;
     _stomachCondition = med.stomachCondition;
@@ -236,9 +239,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
     try {
       // Güvenli değer atamaları
-      final name = _nameController.text.trim();
-      final dosage = _dosageController.text.trim();
-      final notes = _notesController.text.trim();
+                  final name = _nameController.text.trim();
+            final dosage = _dosageController.text.trim();
+            final stockText = _stockController.text.trim();
+            final notes = _notesController.text.trim();
+            
+            int stock = 0;
+            if (stockText.isNotEmpty) {
+              stock = int.tryParse(stockText) ?? 0;
+            }
 
       if (name.isEmpty || dosage.isEmpty) {
         throw Exception(
@@ -257,6 +266,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         stomachCondition: _stomachCondition,
         startDate: _startDate ?? DateTime.now(),
         endDate: _isContinuous ? null : _endDate,
+        isActive: true,
+        stock: stock,
         notes: notes.isNotEmpty ? notes : null,
       );
 
@@ -266,18 +277,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         await _dbHelper.updateMedication(medication);
       }
 
-      // Bildirimleri yeniden programla
-      await _notificationService.scheduleNotificationForMedication(
+      // Bugünkü logları yeni saatlere göre senkronize et ve bildirimleri planla
+      await _notificationService.resyncTodaysLogsForMedication(
         medication,
-        medicationTimeText: AppLocalizations.of(
-          context,
-        )!.translate('medication_time'),
-        onEmptyStomachText: AppLocalizations.of(
-          context,
-        )!.translate('on_empty_stomach'),
-        withFoodText: AppLocalizations.of(
-          context,
-        )!.translate('with_food_notification'),
+        medicationTimeText: AppLocalizations.of(context)!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(context)!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(context)!.translate('with_food_notification'),
       );
 
       if (mounted) {
@@ -445,6 +450,23 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 return null;
               },
             ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _stockController,
+              label: 'Miktar (Adet)',
+              hint: 'Örn: 30',
+              icon: Icons.inventory,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  final stock = int.tryParse(value.trim());
+                  if (stock == null || stock < 0) {
+                    return 'Geçerli bir sayı giriniz';
+                  }
+                }
+                return null;
+              },
+            ),
             const SizedBox(height: 30),
 
             _buildSectionTitle(
@@ -535,6 +557,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     required IconData icon,
     String? Function(String?)? validator,
     int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -546,6 +569,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         controller: controller,
         validator: validator,
         maxLines: maxLines,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,

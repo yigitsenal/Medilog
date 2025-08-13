@@ -3,11 +3,19 @@ import '../models/medication.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
 import 'add_medication_screen.dart';
+import 'home_screen.dart';
+import '../services/localization_service.dart';
 
 class MedicationListScreen extends StatefulWidget {
   final bool isEmbedded;
   final VoidCallback? onBackToHome;
-  const MedicationListScreen({super.key, this.isEmbedded = false, this.onBackToHome});
+  final VoidCallback? onMedicationUpdated;
+  const MedicationListScreen({
+    super.key, 
+    this.isEmbedded = false, 
+    this.onBackToHome,
+    this.onMedicationUpdated,
+  });
 
   @override
   State<MedicationListScreen> createState() => _MedicationListScreenState();
@@ -51,6 +59,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     try {
       // Sadece aktif ilaçları yükle
       final medications = await _dbHelper.getActiveMedications();
+// Ana ekrana haber ver
+widget.onMedicationUpdated?.call();
       setState(() {
         _medications = medications;
         _isLoading = false;
@@ -116,7 +126,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -270,23 +280,25 @@ class _MedicationListScreenState extends State<MedicationListScreen>
   }
 
   String _getFrequencyText(String frequency) {
-    const frequencyLabels = {
-      'daily': 'Günde bir kez',
-      'twice_daily': 'Günde iki kez',
-      'three_times_daily': 'Günde üç kez',
-      'weekly': 'Haftada birkaç kez',
-      'custom': 'Özel',
+    final l = AppLocalizations.of(context)!;
+    final labels = {
+      'daily': l.translate('once_a_day'),
+      'twice_daily': l.translate('twice_a_day'),
+      'three_times_daily': l.translate('three_times_a_day'),
+      'weekly': l.translate('several_times_a_week'),
+      'custom': l.translate('custom'),
     };
-    return frequencyLabels[frequency] ?? frequency;
+    return labels[frequency] ?? frequency;
   }
 
   String _getStomachText(String condition) {
-    const conditionLabels = {
-      'either': 'Fark etmez',
-      'empty': 'Aç karına',
-      'full': 'Tok karına',
+    final l = AppLocalizations.of(context)!;
+    final labels = {
+      'either': l.translate('does_not_matter'),
+      'empty': l.translate('empty_stomach'),
+      'full': l.translate('full_stomach'),
     };
-    return conditionLabels[condition] ?? condition;
+    return labels[condition] ?? condition;
   }
 
   Color _getMedicationColor(Medication medication) {
@@ -329,7 +341,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('İlaç Listesi')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.translate('medication_list'))),
       body: _buildEmbeddedBody(),
     );
   }
@@ -530,7 +542,11 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                 builder: (context) =>
                     AddMedicationScreen(medication: medication),
               ),
-            ).then((_) => _loadMedications());
+            ).then((_) {
+              _loadMedications();
+              widget.onMedicationUpdated?.call();
+              HomeScreen.homeKey.currentState?.reloadToday();
+            });
           },
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -571,7 +587,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Doz: ${medication.dosage}',
+                            AppLocalizations.of(context)!.translate('dosage') + ': ${medication.dosage}',
                             style: TextStyle(
                               fontSize: 14,
                               color: medication.isActive
@@ -588,6 +604,23 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                                   : Colors.grey[400],
                               fontWeight: FontWeight.w500,
                             ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.inventory, size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Text(
+                                AppLocalizations.of(context)!.translate('stock') + ': ${medication.stock}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: medication.isActive
+                                      ? Colors.grey[600]
+                                      : Colors.grey[400],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -613,7 +646,12 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                                 builder: (context) =>
                                     AddMedicationScreen(medication: medication),
                               ),
-                            ).then((_) => _loadMedications());
+                            ).then((_) {
+                              _loadMedications();
+                              widget.onMedicationUpdated?.call();
+                              // Force HomeScreen to reload today data
+                              HomeScreen.homeKey.currentState?.reloadToday();
+                            });
                             break;
                           case 'toggle':
                             _toggleMedicationStatus(medication);
@@ -748,8 +786,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                         size: 16,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Saatler:',
+                      Text(
+                        AppLocalizations.of(context)!.translate('usage_times'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

@@ -8,6 +8,8 @@ import 'add_medication_screen.dart';
 import 'statistics_screen.dart';
 import '../services/notification_service.dart';
 import '../services/database_helper.dart';
+import '../services/localization_service.dart';
+import '../widgets/banner_ad_widget.dart';
 
 class AppShell extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
@@ -42,10 +44,15 @@ class _AppShellState extends State<AppShell> {
   void _buildPages() {
     _pages = [
       HomeScreen(
+        key: HomeScreen.homeKey,
         isEmbedded: true,
         onNavigateTab: (i) => setState(() => _index = i),
       ),
-      MedicationListScreen(isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
+      MedicationListScreen(
+        isEmbedded: true, 
+        onBackToHome: () => setState(() => _index = 0),
+        onMedicationUpdated: () => setState(() {}),
+      ),
       HistoryScreen(isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
       StatisticsScreen(isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
       SettingsScreen(onSettingsChanged: widget.onSettingsChanged, isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
@@ -165,12 +172,12 @@ class _AppShellState extends State<AppShell> {
       NavigationDestination(
         icon: _navIcon(Icons.home_outlined, _index == 0, badge: _pendingToday),
         selectedIcon: _navIcon(Icons.home, true, badge: _pendingToday),
-        label: 'Ana Sayfa',
+        label: AppLocalizations.of(context)!.translate('home'),
       ),
-      const NavigationDestination(icon: Icon(Icons.list_alt_outlined), selectedIcon: Icon(Icons.list_alt), label: 'İlaçlar'),
-      const NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: 'Geçmiş'),
-      const NavigationDestination(icon: Icon(Icons.analytics_outlined), selectedIcon: Icon(Icons.analytics), label: 'İstatistik'),
-      const NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Ayarlar'),
+      NavigationDestination(icon: const Icon(Icons.list_alt_outlined), selectedIcon: const Icon(Icons.list_alt), label: AppLocalizations.of(context)!.translate('medications')),
+      NavigationDestination(icon: const Icon(Icons.history_outlined), selectedIcon: const Icon(Icons.history), label: AppLocalizations.of(context)!.translate('history')),
+      NavigationDestination(icon: const Icon(Icons.analytics_outlined), selectedIcon: const Icon(Icons.analytics), label: AppLocalizations.of(context)!.translate('statistics')),
+      NavigationDestination(icon: const Icon(Icons.settings_outlined), selectedIcon: const Icon(Icons.settings), label: AppLocalizations.of(context)!.translate('settings')),
     ];
 
     final showFab = _index == 0 || _index == 1;
@@ -206,32 +213,43 @@ class _AppShellState extends State<AppShell> {
               )
             : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-        bottomNavigationBar: NavigationBarTheme(
-          data: NavigationBarThemeData(
-            backgroundColor: colorScheme.surface,
-            indicatorColor: colorScheme.primary.withOpacity(0.14),
-            labelTextStyle: WidgetStateProperty.resolveWith(
-              (states) => TextStyle(
-                fontWeight: FontWeight.w600,
-                color: states.contains(WidgetState.selected)
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Banner reklam
+            const BannerAdWidget(
+              height: 50,
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              showBorder: false,
+            ),
+            NavigationBarTheme(
+              data: NavigationBarThemeData(
+                backgroundColor: colorScheme.surface,
+                indicatorColor: colorScheme.primary.withOpacity(0.14),
+                labelTextStyle: WidgetStateProperty.resolveWith(
+                  (states) => TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: states.contains(WidgetState.selected)
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                iconTheme: WidgetStateProperty.resolveWith(
+                  (states) => IconThemeData(
+                    color: states.contains(WidgetState.selected)
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              child: NavigationBar(
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: destinations,
               ),
             ),
-            iconTheme: WidgetStateProperty.resolveWith(
-              (states) => IconThemeData(
-                color: states.contains(WidgetState.selected)
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          child: NavigationBar(
-            selectedIndex: _index,
-            onDestinationSelected: (i) => setState(() => _index = i),
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: destinations,
-          ),
+          ],
         ),
       ),
     );

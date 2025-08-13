@@ -9,6 +9,7 @@ class Medication {
   final DateTime? startDate;
   final DateTime? endDate;
   final bool isActive;
+  final int stock;
 
   Medication({
     this.id,
@@ -21,6 +22,7 @@ class Medication {
     this.startDate,
     this.endDate,
     this.isActive = true,
+    this.stock = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +37,7 @@ class Medication {
       'startDate': startDate?.millisecondsSinceEpoch,
       'endDate': endDate?.millisecondsSinceEpoch,
       'isActive': isActive ? 1 : 0,
+      'stock': stock,
     };
   }
 
@@ -54,6 +57,7 @@ class Medication {
           ? DateTime.fromMillisecondsSinceEpoch(map['endDate'])
           : null,
       isActive: map['isActive'] == 1,
+      stock: map['stock'] ?? 0,
     );
   }
 
@@ -68,6 +72,7 @@ class Medication {
     DateTime? startDate,
     DateTime? endDate,
     bool? isActive,
+    int? stock,
   }) {
     return Medication(
       id: id ?? this.id,
@@ -80,6 +85,7 @@ class Medication {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       isActive: isActive ?? this.isActive,
+      stock: stock ?? this.stock,
     );
   }
 }

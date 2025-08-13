@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/medication_log.dart';
+import '../models/medication.dart';
 import '../services/database_helper.dart';
 import '../services/localization_service.dart';
 
@@ -18,6 +19,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   List<MedicationLog> _allLogs = [];
+  List<Medication> _medications = [];
   bool _isLoading = true;
   String _selectedPeriod = 'week'; // 'week', 'month', 'year'
 
@@ -67,9 +69,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       }
 
       final logs = await _dbHelper.getLogsByDateRange(startDate, now);
+      final medications = await _dbHelper.getAllMedications();
 
       setState(() {
         _allLogs = logs;
+        _medications = medications;
         _isLoading = false;
       });
 
@@ -620,7 +624,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppLocalizations.of(context)!.translate('medication') + ' #${entry.key}',
+                            _getMedicationName(entry.key),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -663,5 +667,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ],
       ),
     );
+  }
+
+  String _getMedicationName(int medicationId) {
+    final medication = _medications.firstWhere(
+      (med) => med.id == medicationId,
+      orElse: () => Medication(
+        id: medicationId,
+        name: 'Bilinmeyen İlaç',
+        dosage: '',
+        frequency: '',
+        times: [],
+        stomachCondition: '',
+        startDate: DateTime.now(),
+        isActive: true,
+        stock: 0,
+      ),
+    );
+    return medication.name;
   }
 }
