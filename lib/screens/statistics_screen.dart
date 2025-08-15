@@ -8,7 +8,11 @@ import '../services/localization_service.dart';
 class StatisticsScreen extends StatefulWidget {
   final bool isEmbedded;
   final VoidCallback? onBackToHome;
-  const StatisticsScreen({super.key, this.isEmbedded = false, this.onBackToHome});
+  const StatisticsScreen({
+    super.key,
+    this.isEmbedded = false,
+    this.onBackToHome,
+  });
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -85,7 +89,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('error_loading_statistics') + ': $e'),
+            content: Text(
+              AppLocalizations.of(
+                    context,
+                  )!.translate('error_loading_statistics') +
+                  ': $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -98,7 +107,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     if (widget.isEmbedded) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('İstatistikler'),
+          title: Text(AppLocalizations.of(context)!.translate('statistics')),
           scrolledUnderElevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -113,18 +122,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : FadeTransition(opacity: _fadeAnimation, child: _buildMainContent()),
+            : FadeTransition(
+                opacity: _fadeAnimation,
+                child: _buildMainContent(),
+              ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('İstatistikler'), scrolledUnderElevation: 0),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.translate('statistics')),
+        scrolledUnderElevation: 0,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : FadeTransition(
-              opacity: _fadeAnimation,
-              child: _buildMainContent(),
-            ),
+          : FadeTransition(opacity: _fadeAnimation, child: _buildMainContent()),
     );
   }
 
@@ -148,56 +160,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      pinned: true,
-      expandedHeight: 100,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back, color: Colors.black87),
-        ),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: Text(
-          AppLocalizations.of(context)!.translate('statistics'),
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF00A8E8), Color(0xFF0077BE)],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPeriodSelector() {
     final loc = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.1 : 0.5,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -205,7 +179,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       child: Row(
         children: [
-          _buildPeriodButton(loc?.translate('last_7_days') ?? 'Son 7 Gün', 'week'),
+          _buildPeriodButton(
+            loc?.translate('last_7_days') ?? 'Son 7 Gün',
+            'week',
+          ),
           _buildPeriodButton(loc?.translate('last_month') ?? 'Son Ay', 'month'),
           _buildPeriodButton(loc?.translate('last_year') ?? 'Son Yıl', 'year'),
         ],
@@ -236,7 +213,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : Colors.grey[600],
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -292,11 +271,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.08 : 0.5,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -348,11 +329,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.08 : 0.5,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -491,7 +474,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           if (sortedDays.isEmpty)
             Center(
               child: Text(
-                AppLocalizations.of(context)!.translate('no_data_found_for_this_period'),
+                AppLocalizations.of(
+                  context,
+                )!.translate('no_data_found_for_this_period'),
                 style: TextStyle(color: Colors.grey),
               ),
             )
@@ -591,7 +576,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           if (medicationLogs.isEmpty)
             Center(
               child: Text(
-                AppLocalizations.of(context)!.translate('no_data_found_for_this_period'),
+                AppLocalizations.of(
+                  context,
+                )!.translate('no_data_found_for_this_period'),
                 style: TextStyle(color: Colors.grey),
               ),
             )

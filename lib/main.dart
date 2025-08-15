@@ -8,8 +8,8 @@ import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'services/localization_service.dart';
 import 'screens/app_shell.dart';
- 
- void main() async {
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize timezone data
@@ -60,12 +60,19 @@ class MedilogApp extends StatefulWidget {
     state?.setLocale(newLocale);
   }
 
+  // Dark mode toggle accessible from anywhere (e.g. SettingsScreen)
+  static void setDarkMode(BuildContext context, bool isDark) {
+    final state = context.findAncestorStateOfType<_MedilogAppState>();
+    state?._setDarkMode(isDark);
+  }
+
   @override
   State<MedilogApp> createState() => _MedilogAppState();
 }
 
 class _MedilogAppState extends State<MedilogApp> {
   Locale? _locale;
+  bool _isDarkMode = false;
 
   void setLocale(Locale locale) {
     setState(() {
@@ -73,19 +80,28 @@ class _MedilogAppState extends State<MedilogApp> {
     });
   }
 
+  void _setDarkMode(bool value) {
+    if (_isDarkMode == value) return;
+    setState(() => _isDarkMode = value);
+  }
+
   @override
   void initState() {
     super.initState();
-    _initializeLocale();
+    _initializeSettings();
   }
 
-  Future<void> _initializeLocale() async {
+  Future<void> _initializeSettings() async {
     final settingsService = SettingsService();
     await settingsService.initialize();
     final languageCode = await settingsService.currentLanguage;
+    final dark = await settingsService.isDarkModeEnabled;
 
     if (mounted) {
-      setLocale(Locale(languageCode, ''));
+      setState(() {
+        _locale = Locale(languageCode, '');
+        _isDarkMode = dark;
+      });
     }
   }
 
@@ -99,8 +115,8 @@ class _MedilogAppState extends State<MedilogApp> {
     return MaterialApp(
       title: 'Medilog',
       theme: AppTheme.light(),
-darkTheme: AppTheme.dark(),
-themeMode: ThemeMode.light,
+      darkTheme: AppTheme.dark(),
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       locale: _locale,
       home: AppShell(),
       localizationsDelegates: [

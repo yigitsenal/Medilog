@@ -216,6 +216,15 @@
   "current_stock": "Mevcut stok: {count}",
   "no_active_medication": "Aktif ilaç bulunamadı",
   "map_open_error": "Harita açılamadı",
-  "notifications_muted_hours": "Bildirimler {hours} saat sessize alındı (demo)",
-  "details": "Detay"
+  "notifications_muted_hours": "Bildirimler {hours} saat sessize alındı",
+  "details": "Detay",
+  "quick_notification": "Hızlı bildirim gönder",
+  "stock_adjust": "Stok +1 / -1",
+  "nearest_pharmacy": "En yakın eczane",
+  "minutes_later": "{minutes} dk sonra hatırlatma",
+  "medications_short": "İlaçlar",
+  "quantity_units": "Miktar (Adet)",
+  "quantity_hint": "Örn: 30",
+  "invalid_number": "Geçerli bir sayı giriniz",
+  "disabled": "Devre dışı"
 }

@@ -12,8 +12,13 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
   final bool isEmbedded;
   final VoidCallback? onBackToHome;
-  
-  const SettingsScreen({super.key, this.onSettingsChanged, this.isEmbedded = false, this.onBackToHome});
+
+  const SettingsScreen({
+    super.key,
+    this.onSettingsChanged,
+    this.isEmbedded = false,
+    this.onBackToHome,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -22,7 +27,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen>
     with TickerProviderStateMixin {
   final SettingsService _settingsService = SettingsService();
-  final LocationService _locationService = LocationService(); // Konum servisini başlatın
+  final LocationService _locationService =
+      LocationService(); // Konum servisini başlatın
   UserPreferences? _userPreferences;
   bool _isLoading = true;
   bool _isGeofenceEnabled = false;
@@ -85,9 +91,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(value
-                ? 'Konum hatırlatıcısı açıldı.'
-                : 'Konum hatırlatıcısı kapatıldı.'),
+            content: Text(
+              value
+                  ? 'Konum hatırlatıcısı açıldı.'
+                  : 'Konum hatırlatıcısı kapatıldı.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -202,11 +210,10 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
     if (widget.isEmbedded) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Ayarlar'),
+          title: Text(AppLocalizations.of(context)!.translate('settings')),
           scrolledUnderElevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -231,13 +238,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ayarlar'), scrolledUnderElevation: 0),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.translate('settings')),
+        scrolledUnderElevation: 0,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : FadeTransition(
-              opacity: _fadeAnimation,
-              child: _buildMainContent(),
-            ),
+          : FadeTransition(opacity: _fadeAnimation, child: _buildMainContent()),
     );
   }
 
@@ -255,57 +262,19 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      pinned: true,
-      expandedHeight: 100,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back, color: Colors.black87),
-        ),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: Text(
-          AppLocalizations.of(context)!.translate('settings'),
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF00A8E8), Color(0xFF0077BE)],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildUserProfileCard() {
     if (_userPreferences == null) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.1 : 0.4,
+            ),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -337,10 +306,10 @@ class _SettingsScreenState extends State<SettingsScreen>
               children: [
                 Text(
                   _userPreferences!.userName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -382,147 +351,202 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildSettingsGroups() {
     return Column(
       children: [
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('notifications'), Icons.notifications, [
-          _buildSwitchTile(
-            AppLocalizations.of(context)!.translate('notifications'),
-            AppLocalizations.of(context)!.translate('receive_medication_reminders'),
-            _userPreferences?.notificationsEnabled ?? true,
-            (value) => _updatePreferences(
-              _userPreferences!.copyWith(notificationsEnabled: value),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('notifications'),
+          Icons.notifications,
+          [
+            _buildSwitchTile(
+              AppLocalizations.of(context)!.translate('notifications'),
+              AppLocalizations.of(
+                context,
+              )!.translate('receive_medication_reminders'),
+              _userPreferences?.notificationsEnabled ?? true,
+              (value) => _updatePreferences(
+                _userPreferences!.copyWith(notificationsEnabled: value),
+              ),
             ),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('snooze_duration'),
-            '${_userPreferences?.snoozeMinutes ?? 5} ${AppLocalizations.of(context)!.translate('minutes')}',
-            Icons.snooze,
-            () => _showSnoozeDialog(),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('notification_sound'),
-            _userPreferences?.reminderTone ?? AppLocalizations.of(context)!.translate('default'),
-            Icons.music_note,
-            () => _showReminderToneDialog(),
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('appearance'), Icons.palette, [
-          _buildSwitchTile(
-            AppLocalizations.of(context)!.translate('dark_mode'),
-            AppLocalizations.of(context)!.translate('use_dark_theme'),
-            _userPreferences?.darkMode ?? false,
-            (value) =>
-                _updatePreferences(_userPreferences!.copyWith(darkMode: value)),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('language'),
-            _getLanguageName(_userPreferences?.language ?? 'tr'),
-            Icons.language,
-            () => _showLanguageDialog(),
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('location'), Icons.location_on, [
-          _buildSwitchTile(
-            AppLocalizations.of(context)!.translate('remind_when_leaving_home'),
-            AppLocalizations.of(context)!.translate('enable_location_based_reminders'),
-            _isGeofenceEnabled,
-            _toggleGeofence,
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('set_home_location'),
-            AppLocalizations.of(context)!.translate('save_home_for_reminders'),
-            Icons.home,
-            _setHomeLocation,
-            isDestructive: _isSettingHome, // Butonun durumunu belirtmek için
-          ),
-          // --- TEST BUTONU ---
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('send_test_notification'),
-            AppLocalizations.of(context)!.translate('test_home_exit_notification'),
-            Icons.notification_important,
-            () async {
-              await _locationService.sendTestNotification();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context)!.translate('test_notification_sent')),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              }
-            },
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('data_and_backup'), Icons.backup, [
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('backup_frequency'),
-            _getBackupFrequencyName(
-              _userPreferences?.backupFrequency ?? 'weekly',
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('snooze_duration'),
+              '${_userPreferences?.snoozeMinutes ?? 5} ${AppLocalizations.of(context)!.translate('minutes')}',
+              Icons.snooze,
+              () => _showSnoozeDialog(),
             ),
-            Icons.cloud_upload,
-            () => _showBackupFrequencyDialog(),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('export_data'),
-            AppLocalizations.of(context)!.translate('save_medication_data_as_csv'),
-            Icons.file_download,
-            () => _exportData(),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('import_data'),
-            AppLocalizations.of(context)!.translate('restore_from_backup_file'),
-            Icons.file_upload,
-            () => _importData(),
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('reports'), Icons.analytics, [
-          _buildSwitchTile(
-            AppLocalizations.of(context)!.translate('weekly_reports'),
-            AppLocalizations.of(context)!.translate('receive_weekly_compliance_reports'),
-            _userPreferences?.weeklyReports ?? true,
-            (value) => _updatePreferences(
-              _userPreferences!.copyWith(weeklyReports: value),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('notification_sound'),
+              _userPreferences?.reminderTone ??
+                  AppLocalizations.of(context)!.translate('default'),
+              Icons.music_note,
+              () => _showReminderToneDialog(),
             ),
-          ),
-          _buildSwitchTile(
-            AppLocalizations.of(context)!.translate('monthly_reports'),
-            AppLocalizations.of(context)!.translate('receive_monthly_analysis_reports'),
-            _userPreferences?.monthlyReports ?? true,
-            (value) => _updatePreferences(
-              _userPreferences!.copyWith(monthlyReports: value),
-            ),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('daily_goal'),
-            '%${_userPreferences?.dailyGoalCompliance ?? 80} ${AppLocalizations.of(context)!.translate('compliance')}',
-            Icons.track_changes,
-            () => _showDailyGoalDialog(),
-          ),
-        ]),
+          ],
+        ),
         const SizedBox(height: 16),
-        _buildSettingsGroup(AppLocalizations.of(context)!.translate('other'), Icons.more_horiz, [
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('about'),
-            AppLocalizations.of(context)!.translate('app_information_and_version'),
-            Icons.info,
-            () => _showAboutDialog(),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('privacy_policy'),
-            AppLocalizations.of(context)!.translate('view_our_data_usage_policy'),
-            Icons.privacy_tip,
-            () => _showPrivacyPolicy(),
-          ),
-          _buildListTile(
-            AppLocalizations.of(context)!.translate('reset_settings'),
-            AppLocalizations.of(context)!.translate('reset_all_settings_to_default'),
-            Icons.restore,
-            () => _showResetDialog(),
-            isDestructive: true,
-          ),
-        ]),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('appearance'),
+          Icons.palette,
+          [
+            _buildSwitchTile(
+              AppLocalizations.of(context)!.translate('dark_mode'),
+              AppLocalizations.of(context)!.translate('use_dark_theme'),
+              _userPreferences?.darkMode ?? false,
+              (value) {
+                _updatePreferences(_userPreferences!.copyWith(darkMode: value));
+                MedilogApp.setDarkMode(context, value);
+              },
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('language'),
+              _getLanguageName(_userPreferences?.language ?? 'tr'),
+              Icons.language,
+              () => _showLanguageDialog(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('location'),
+          Icons.location_on,
+          [
+            _buildSwitchTile(
+              AppLocalizations.of(
+                context,
+              )!.translate('remind_when_leaving_home'),
+              AppLocalizations.of(
+                context,
+              )!.translate('enable_location_based_reminders'),
+              _isGeofenceEnabled,
+              _toggleGeofence,
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('set_home_location'),
+              AppLocalizations.of(
+                context,
+              )!.translate('save_home_for_reminders'),
+              Icons.home,
+              _setHomeLocation,
+              isDestructive: _isSettingHome, // Butonun durumunu belirtmek için
+            ),
+            // --- TEST BUTONU ---
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('send_test_notification'),
+              AppLocalizations.of(
+                context,
+              )!.translate('test_home_exit_notification'),
+              Icons.notification_important,
+              () async {
+                await _locationService.sendTestNotification();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate('test_notification_sent'),
+                      ),
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('data_and_backup'),
+          Icons.backup,
+          [
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('backup_frequency'),
+              _getBackupFrequencyName(
+                _userPreferences?.backupFrequency ?? 'weekly',
+              ),
+              Icons.cloud_upload,
+              () => _showBackupFrequencyDialog(),
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('export_data'),
+              AppLocalizations.of(
+                context,
+              )!.translate('save_medication_data_as_csv'),
+              Icons.file_download,
+              () => _exportData(),
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('import_data'),
+              AppLocalizations.of(
+                context,
+              )!.translate('restore_from_backup_file'),
+              Icons.file_upload,
+              () => _importData(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('reports'),
+          Icons.analytics,
+          [
+            _buildSwitchTile(
+              AppLocalizations.of(context)!.translate('weekly_reports'),
+              AppLocalizations.of(
+                context,
+              )!.translate('receive_weekly_compliance_reports'),
+              _userPreferences?.weeklyReports ?? true,
+              (value) => _updatePreferences(
+                _userPreferences!.copyWith(weeklyReports: value),
+              ),
+            ),
+            _buildSwitchTile(
+              AppLocalizations.of(context)!.translate('monthly_reports'),
+              AppLocalizations.of(
+                context,
+              )!.translate('receive_monthly_analysis_reports'),
+              _userPreferences?.monthlyReports ?? true,
+              (value) => _updatePreferences(
+                _userPreferences!.copyWith(monthlyReports: value),
+              ),
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('daily_goal'),
+              '%${_userPreferences?.dailyGoalCompliance ?? 80} ${AppLocalizations.of(context)!.translate('compliance')}',
+              Icons.track_changes,
+              () => _showDailyGoalDialog(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSettingsGroup(
+          AppLocalizations.of(context)!.translate('other'),
+          Icons.more_horiz,
+          [
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('about'),
+              AppLocalizations.of(
+                context,
+              )!.translate('app_information_and_version'),
+              Icons.info,
+              () => _showAboutDialog(),
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('privacy_policy'),
+              AppLocalizations.of(
+                context,
+              )!.translate('view_our_data_usage_policy'),
+              Icons.privacy_tip,
+              () => _showPrivacyPolicy(),
+            ),
+            _buildListTile(
+              AppLocalizations.of(context)!.translate('reset_settings'),
+              AppLocalizations.of(
+                context,
+              )!.translate('reset_all_settings_to_default'),
+              Icons.restore,
+              () => _showResetDialog(),
+              isDestructive: true,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -534,11 +558,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.08 : 0.5,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -562,10 +588,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -586,10 +612,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListTile(
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
@@ -618,7 +644,9 @@ class _SettingsScreenState extends State<SettingsScreen>
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: isDestructive ? Colors.red : Colors.black87,
+          color: isDestructive
+              ? Colors.red
+              : Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
@@ -702,13 +730,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('snooze_duration_selection')),
+        title: Text(
+          AppLocalizations.of(context)!.translate('snooze_duration_selection'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int minutes in [1, 5, 10, 15, 30])
               ListTile(
-                title: Text('$minutes ${AppLocalizations.of(context)!.translate('minutes')}'),
+                title: Text(
+                  '$minutes ${AppLocalizations.of(context)!.translate('minutes')}',
+                ),
                 leading: Radio<int>(
                   value: minutes,
                   groupValue: _userPreferences?.snoozeMinutes,
@@ -728,12 +760,21 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _showReminderToneDialog() {
     final tones = ['default', 'gentle', 'alarm', 'notification'];
-    final toneNames = [AppLocalizations.of(context)!.translate('default'), AppLocalizations.of(context)!.translate('gentle'), AppLocalizations.of(context)!.translate('alarm'), AppLocalizations.of(context)!.translate('notification')];
+    final toneNames = [
+      AppLocalizations.of(context)!.translate('default'),
+      AppLocalizations.of(context)!.translate('gentle'),
+      AppLocalizations.of(context)!.translate('alarm'),
+      AppLocalizations.of(context)!.translate('notification'),
+    ];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('notification_sound_selection')),
+        title: Text(
+          AppLocalizations.of(
+            context,
+          )!.translate('notification_sound_selection'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -802,12 +843,19 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   void _showBackupFrequencyDialog() {
     final frequencies = ['never', 'daily', 'weekly', 'monthly'];
-    final frequencyNames = [AppLocalizations.of(context)!.translate('never'), AppLocalizations.of(context)!.translate('daily'), AppLocalizations.of(context)!.translate('weekly'), AppLocalizations.of(context)!.translate('monthly')];
+    final frequencyNames = [
+      AppLocalizations.of(context)!.translate('never'),
+      AppLocalizations.of(context)!.translate('daily'),
+      AppLocalizations.of(context)!.translate('weekly'),
+      AppLocalizations.of(context)!.translate('monthly'),
+    ];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('backup_frequency_selection')),
+        title: Text(
+          AppLocalizations.of(context)!.translate('backup_frequency_selection'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -835,7 +883,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('daily_compliance_goal')),
+        title: Text(
+          AppLocalizations.of(context)!.translate('daily_compliance_goal'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -879,7 +929,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       children: [
         Text(
-          AppLocalizations.of(context)!.translate('medilog_is_a_modern_app_for_medication_tracking'),
+          AppLocalizations.of(
+            context,
+          )!.translate('medilog_is_a_modern_app_for_medication_tracking'),
         ),
         const SizedBox(height: 16),
         Text(AppLocalizations.of(context)!.translate('medilog_team')),
@@ -911,9 +963,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('reset_settings_confirmation')),
+        title: Text(
+          AppLocalizations.of(
+            context,
+          )!.translate('reset_settings_confirmation'),
+        ),
         content: Text(
-          AppLocalizations.of(context)!.translate('are_you_sure_you_want_to_reset_all_settings'),
+          AppLocalizations.of(
+            context,
+          )!.translate('are_you_sure_you_want_to_reset_all_settings'),
         ),
         actions: [
           TextButton(
@@ -929,13 +987,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(AppLocalizations.of(context)!.translate('settings_reset_successfully')),
+                    content: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.translate('settings_reset_successfully'),
+                    ),
                     backgroundColor: Colors.green,
                   ),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.translate('reset'), style: const TextStyle(color: Colors.white)),
+            child: Text(
+              AppLocalizations.of(context)!.translate('reset'),
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -945,7 +1010,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _exportData() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.translate('data_export_feature_coming_soon')),
+        content: Text(
+          AppLocalizations.of(
+            context,
+          )!.translate('data_export_feature_coming_soon'),
+        ),
         backgroundColor: Colors.orange,
       ),
     );
@@ -954,7 +1023,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _importData() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.translate('data_import_feature_coming_soon')),
+        content: Text(
+          AppLocalizations.of(
+            context,
+          )!.translate('data_import_feature_coming_soon'),
+        ),
         backgroundColor: Colors.orange,
       ),
     );

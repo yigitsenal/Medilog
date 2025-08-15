@@ -239,15 +239,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
     try {
       // Güvenli değer atamaları
-                  final name = _nameController.text.trim();
-            final dosage = _dosageController.text.trim();
-            final stockText = _stockController.text.trim();
-            final notes = _notesController.text.trim();
-            
-            int stock = 0;
-            if (stockText.isNotEmpty) {
-              stock = int.tryParse(stockText) ?? 0;
-            }
+      final name = _nameController.text.trim();
+      final dosage = _dosageController.text.trim();
+      final stockText = _stockController.text.trim();
+      final notes = _notesController.text.trim();
+
+      int stock = 0;
+      if (stockText.isNotEmpty) {
+        stock = int.tryParse(stockText) ?? 0;
+      }
 
       if (name.isEmpty || dosage.isEmpty) {
         throw Exception(
@@ -280,9 +280,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       // Bugünkü logları yeni saatlere göre senkronize et ve bildirimleri planla
       await _notificationService.resyncTodaysLogsForMedication(
         medication,
-        medicationTimeText: AppLocalizations.of(context)!.translate('medication_time'),
-        onEmptyStomachText: AppLocalizations.of(context)!.translate('on_empty_stomach'),
-        withFoodText: AppLocalizations.of(context)!.translate('with_food_notification'),
+        medicationTimeText: AppLocalizations.of(
+          context,
+        )!.translate('medication_time'),
+        onEmptyStomachText: AppLocalizations.of(
+          context,
+        )!.translate('on_empty_stomach'),
+        withFoodText: AppLocalizations.of(
+          context,
+        )!.translate('with_food_notification'),
       );
 
       if (mounted) {
@@ -453,15 +459,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             const SizedBox(height: 16),
             _buildTextField(
               controller: _stockController,
-              label: 'Miktar (Adet)',
-              hint: 'Örn: 30',
+              label: AppLocalizations.of(context)!.translate('quantity_units'),
+              hint: AppLocalizations.of(context)!.translate('quantity_hint'),
               icon: Icons.inventory,
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value != null && value.trim().isNotEmpty) {
                   final stock = int.tryParse(value.trim());
                   if (stock == null || stock < 0) {
-                    return 'Geçerli bir sayı giriniz';
+                    return AppLocalizations.of(
+                      context,
+                    )!.translate('invalid_number');
                   }
                 }
                 return null;
@@ -540,10 +548,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],

@@ -216,6 +216,15 @@
   "current_stock": "Current stock: {count}",
   "no_active_medication": "No active medications found",
   "map_open_error": "Could not open map",
-  "notifications_muted_hours": "Notifications muted for {hours} hour(s) (demo)",
-  "details": "Details"
+  "notifications_muted_hours": "Notifications muted for {hours} hour(s)",
+  "details": "Details",
+  "quick_notification": "Send quick notification",
+  "stock_adjust": "Stock +1 / -1",
+  "nearest_pharmacy": "Nearest pharmacy",
+  "minutes_later": "Reminder in {minutes} min",
+  "medications_short": "Meds",
+  "quantity_units": "Quantity (Units)",
+  "quantity_hint": "e.g., 30",
+  "invalid_number": "Enter a valid number",
+  "disabled": "Disabled"
 }

@@ -11,8 +11,8 @@ class MedicationListScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
   final VoidCallback? onMedicationUpdated;
   const MedicationListScreen({
-    super.key, 
-    this.isEmbedded = false, 
+    super.key,
+    this.isEmbedded = false,
     this.onBackToHome,
     this.onMedicationUpdated,
   });
@@ -59,8 +59,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     try {
       // Sadece aktif ilaçları yükle
       final medications = await _dbHelper.getActiveMedications();
-// Ana ekrana haber ver
-widget.onMedicationUpdated?.call();
+      // Ana ekrana haber ver
+      widget.onMedicationUpdated?.call();
       setState(() {
         _medications = medications;
         _isLoading = false;
@@ -126,7 +126,10 @@ widget.onMedicationUpdated?.call();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('error_occurred') + ': $e'),
+            content: Text(
+              AppLocalizations.of(context)!.translate('error_occurred') +
+                  ': $e',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -324,7 +327,9 @@ widget.onMedicationUpdated?.call();
     if (widget.isEmbedded) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('İlaç Listesi'),
+          title: Text(
+            AppLocalizations.of(context)!.translate('medication_list'),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -341,17 +346,15 @@ widget.onMedicationUpdated?.call();
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.translate('medication_list'))),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.translate('medication_list')),
+      ),
       body: _buildEmbeddedBody(),
     );
   }
 
   Widget _buildEmbeddedBody() {
-    return Column(
-      children: [
-        Expanded(child: _buildContent()),
-      ],
-    );
+    return Column(children: [Expanded(child: _buildContent())]);
   }
 
   Widget _buildFab() {
@@ -359,9 +362,7 @@ widget.onMedicationUpdated?.call();
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const AddMedicationScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const AddMedicationScreen()),
         ).then((_) => _loadMedications());
       },
       child: const Icon(Icons.add),
@@ -385,10 +386,10 @@ widget.onMedicationUpdated?.call();
             ),
           ),
           const SizedBox(width: 15),
-          const Expanded(
+          Expanded(
             child: Text(
-              'İlaç Listesi',
-              style: TextStyle(
+              AppLocalizations.of(context)!.translate('medication_list'),
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -402,9 +403,7 @@ widget.onMedicationUpdated?.call();
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_medications.isEmpty) {
@@ -445,9 +444,9 @@ widget.onMedicationUpdated?.call();
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Henüz ilaç eklenmemiş',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.translate('no_medications_added_yet'),
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -455,7 +454,9 @@ widget.onMedicationUpdated?.call();
           ),
           const SizedBox(height: 8),
           Text(
-            'Yeni ilaç eklemek için + butonuna tıklayın',
+            AppLocalizations.of(
+              context,
+            )!.translate('click_plus_button_to_add_new_medication'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -491,14 +492,16 @@ widget.onMedicationUpdated?.call();
                     horizontal: 24,
                     vertical: 16,
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add, color: Colors.white),
-                      SizedBox(width: 8),
+                      const Icon(Icons.add, color: Colors.white),
+                      const SizedBox(width: 8),
                       Text(
-                        'İlk İlacımı Ekle',
-                        style: TextStyle(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate('add_my_first_medication'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -587,7 +590,8 @@ widget.onMedicationUpdated?.call();
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            AppLocalizations.of(context)!.translate('dosage') + ': ${medication.dosage}',
+                            AppLocalizations.of(context)!.translate('dosage') +
+                                ': ${medication.dosage}',
                             style: TextStyle(
                               fontSize: 14,
                               color: medication.isActive
@@ -608,10 +612,17 @@ widget.onMedicationUpdated?.call();
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.inventory, size: 14, color: Colors.grey[500]),
+                              Icon(
+                                Icons.inventory,
+                                size: 14,
+                                color: Colors.grey[500],
+                              ),
                               const SizedBox(width: 4),
                               Text(
-                                AppLocalizations.of(context)!.translate('stock') + ': ${medication.stock}',
+                                AppLocalizations.of(
+                                      context,
+                                    )!.translate('stock') +
+                                    ': ${medication.stock}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: medication.isActive
@@ -679,7 +690,9 @@ widget.onMedicationUpdated?.call();
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Text('Düzenle'),
+                              Text(
+                                AppLocalizations.of(context)!.translate('edit'),
+                              ),
                             ],
                           ),
                         ),
@@ -709,9 +722,11 @@ widget.onMedicationUpdated?.call();
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                medication.isActive
-                                    ? 'Devre Dışı Bırak'
-                                    : 'Aktif Et',
+                                AppLocalizations.of(context)!.translate(
+                                  medication.isActive
+                                      ? 'deactivate'
+                                      : 'activate',
+                                ),
                               ),
                             ],
                           ),
@@ -733,7 +748,11 @@ widget.onMedicationUpdated?.call();
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Text('Sil'),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.translate('delete'),
+                              ),
                             ],
                           ),
                         ),
@@ -764,7 +783,7 @@ widget.onMedicationUpdated?.call();
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Devre dışı',
+                          AppLocalizations.of(context)!.translate('disabled'),
                           style: TextStyle(
                             color: Colors.orange[700],
                             fontSize: 12,
