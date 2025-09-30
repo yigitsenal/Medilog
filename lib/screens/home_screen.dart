@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
@@ -36,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<MedicationLog> _todayLogs = [];
   List<Medication> _medications = [];
   bool _isLoading = true;
+  bool _notificationsMuted = false;
+  DateTime? _muteUntil;
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
@@ -63,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
     );
+    _checkMuteStatus();
     _loadTodayData();
   }
 
@@ -740,6 +744,86 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
         const SizedBox(height: 15),
+        // Sessize alma durumu bildirimi
+        if (_notificationsMuted && _muteUntil != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 15),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.notifications_off,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        Localizations.localeOf(context).languageCode == 'tr'
+                            ? 'Bildirimler Kapalı'
+                            : 'Notifications Muted',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        Localizations.localeOf(context).languageCode == 'tr'
+                            ? 'Bitiş: ${DateFormat('HH:mm').format(_muteUntil!)}'
+                            : 'Until: ${DateFormat('HH:mm').format(_muteUntil!)}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: _unmuteNotifications,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        Localizations.localeOf(context).languageCode == 'tr'
+                            ? 'Aç'
+                            : 'Unmute',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         Row(
           children: [
             Expanded(
@@ -893,9 +977,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SafeArea(
             child: SingleChildScrollView(
@@ -1111,9 +1195,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1279,9 +1363,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1572,16 +1656,76 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _muteNotificationsFor(Duration duration) async {
-    // Basit: kullanıcıya bilgi mesajı göster
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!
-              .translate('notifications_muted_hours')
-              .replaceFirst('{hours}', duration.inHours.toString()),
+    final prefs = await SharedPreferences.getInstance();
+    final muteUntil = DateTime.now().add(duration);
+    
+    await prefs.setString('mute_until', muteUntil.toIso8601String());
+    
+    setState(() {
+      _notificationsMuted = true;
+      _muteUntil = muteUntil;
+    });
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!
+                .translate('notifications_muted_hours')
+                .replaceFirst('{hours}', duration.inHours.toString()),
+          ),
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Geri Al'
+                : 'Undo',
+            onPressed: _unmuteNotifications,
+          ),
         ),
-      ),
-    );
+      );
+    }
+  }
+
+  Future<void> _checkMuteStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final muteUntilString = prefs.getString('mute_until');
+    
+    if (muteUntilString != null) {
+      final muteUntil = DateTime.parse(muteUntilString);
+      
+      if (DateTime.now().isBefore(muteUntil)) {
+        setState(() {
+          _notificationsMuted = true;
+          _muteUntil = muteUntil;
+        });
+      } else {
+        // Süresi dolmuş, temizle
+        await prefs.remove('mute_until');
+      }
+    }
+  }
+
+  Future<void> _unmuteNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('mute_until');
+    
+    setState(() {
+      _notificationsMuted = false;
+      _muteUntil = null;
+    });
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Bildirimler yeniden açıldı'
+                : 'Notifications unmuted',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
     // Not: Kalıcı uygulama sessize alma için OS-uyumlu ayarlar veya app içi flag kullanılabilir.
   }
 

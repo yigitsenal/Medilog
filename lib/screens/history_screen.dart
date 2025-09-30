@@ -136,7 +136,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -174,7 +174,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -240,6 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
     if (widget.isEmbedded) {
       return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.translate('medication_history')),
           leading: IconButton(
@@ -270,6 +271,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.translate('medication_history'))),
       body: _buildContent(
         groupedLogs,
@@ -687,11 +689,13 @@ class _HistoryScreenState extends State<HistoryScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.1 : 0.3,
+            ),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),

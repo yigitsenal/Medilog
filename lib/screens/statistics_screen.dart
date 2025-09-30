@@ -106,6 +106,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget build(BuildContext context) {
     if (widget.isEmbedded) {
       return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.translate('statistics')),
           scrolledUnderElevation: 0,
@@ -130,6 +131,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.translate('statistics')),
         scrolledUnderElevation: 0,
@@ -346,10 +348,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         children: [
           Text(
             AppLocalizations.of(context)!.translate('compliance_analysis'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 20),
@@ -392,10 +394,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
@@ -449,11 +451,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.08 : 0.3,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -464,10 +468,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         children: [
           Text(
             AppLocalizations.of(context)!.translate('daily_detail'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -524,10 +528,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     const SizedBox(width: 12),
                     Text(
                       '$taken/$total',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -551,11 +555,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.08 : 0.3,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -566,10 +572,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         children: [
           Text(
             AppLocalizations.of(context)!.translate('medication_analysis'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -641,10 +647,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     const SizedBox(width: 12),
                     Text(
                       '$taken/$total',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
