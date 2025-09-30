@@ -139,21 +139,77 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() {
       _isSettingHome = true;
     });
+    
+    // Loading dialog göster
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                Localizations.localeOf(context).languageCode == 'tr'
+                    ? 'Konumunuz kaydediliyor...'
+                    : 'Saving your location...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                Localizations.localeOf(context).languageCode == 'tr'
+                    ? 'Lütfen bekleyin'
+                    : 'Please wait',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     try {
       await _locationService.setHomeLocation();
       if (mounted) {
+        Navigator.of(context).pop(); // Loading dialog'u kapat
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ev konumu başarıyla ayarlandı!'),
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Ev konumu başarıyla ayarlandı!'
+                  : 'Home location set successfully!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        Navigator.of(context).pop(); // Loading dialog'u kapat
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Konum ayarlanırken hata oluştu: $e'),
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Konum ayarlanırken hata oluştu: $e'
+                  : 'Error setting location: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );

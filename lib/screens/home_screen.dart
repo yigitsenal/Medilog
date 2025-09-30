@@ -5,6 +5,7 @@ import '../models/medication.dart';
 import '../models/medication_log.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/location_service.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'history_screen.dart';
@@ -17,8 +18,6 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
   final bool isEmbedded;
   final ValueChanged<int>? onNavigateTab;
-  static final GlobalKey<_HomeScreenState> homeKey =
-      GlobalKey<_HomeScreenState>();
 
   const HomeScreen({
     super.key,
@@ -34,6 +33,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final NotificationService _notificationService = NotificationService();
+  final LocationService _locationService = LocationService();
   List<MedicationLog> _todayLogs = [];
   List<Medication> _medications = [];
   bool _isLoading = true;
@@ -71,10 +71,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateLocationServiceTexts();
+  }
+
+  @override
   void dispose() {
     _fadeController.dispose();
     _scaleController.dispose();
     super.dispose();
+  }
+
+  void _updateLocationServiceTexts() {
+    // Konum servisi bildirim metinlerini güncelle
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (languageCode == 'tr') {
+      _locationService.setNotificationTexts(
+        title: 'İlaçlarınızı Unutmayın!',
+        body: 'Evden ayrılıyorsunuz. İlaçlarınızı yanınıza aldınız mı?',
+      );
+    } else {
+      _locationService.setNotificationTexts(
+        title: 'Don\'t Forget Your Medications!',
+        body: 'You are leaving home. Did you take your medications?',
+      );
+    }
   }
 
   Future<void> _loadTodayData() async {

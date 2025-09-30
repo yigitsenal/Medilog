@@ -7,6 +7,7 @@ import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'services/localization_service.dart';
+import 'services/location_service.dart';
 import 'screens/app_shell.dart';
 
 void main() async {
@@ -33,6 +34,9 @@ void main() async {
     withFoodText: ' - Tok karına',
   );
 
+  // Initialize location service if enabled
+  await _initializeLocationService();
+
   runApp(const MedilogApp());
 }
 
@@ -48,6 +52,28 @@ Future<void> _requestNotificationPermissions() async {
   // For Android 13+ (API 33+), also request exact alarm permission
   if (await Permission.scheduleExactAlarm.isDenied) {
     await Permission.scheduleExactAlarm.request();
+  }
+}
+
+Future<void> _initializeLocationService() async {
+  try {
+    final locationService = LocationService();
+    final isEnabled = await locationService.isGeofenceEnabled();
+    
+    if (isEnabled) {
+      // Konum izinlerini kontrol et
+      final locationPermission = await Permission.location.status;
+      if (locationPermission.isGranted) {
+        // Geofence servisini başlat
+        await locationService.start();
+        print('Geofence service started on app launch');
+      } else {
+        print('Location permission not granted, skipping geofence start');
+      }
+    }
+  } catch (e) {
+    print('Error initializing location service: $e');
+    // Hata olsa bile uygulama çalışmaya devam etsin
   }
 }
 

@@ -651,7 +651,6 @@ class _MedicationListScreenState extends State<MedicationListScreen>
             ).then((_) {
               _loadMedications();
               widget.onMedicationUpdated?.call();
-              HomeScreen.homeKey.currentState?.reloadToday();
             });
           },
           child: Padding(
@@ -788,7 +787,6 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                         ).then((_) {
                           _loadMedications();
                           widget.onMedicationUpdated?.call();
-                          HomeScreen.homeKey.currentState?.reloadToday();
                         });
                         break;
                       case 'toggle':

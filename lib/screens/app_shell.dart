@@ -24,12 +24,22 @@ class _AppShellState extends State<AppShell> {
   final PageStorageBucket _bucket = PageStorageBucket();
   late List<Widget> _pages;
   int _pendingToday = 0;
+  final GlobalKey<_AppShellState> _appShellKey = GlobalKey<_AppShellState>();
 
   @override
   void initState() {
     super.initState();
     _buildPages();
     _loadPendingCount();
+  }
+
+  void reloadHomeScreen() {
+    // HomeScreen'i yeniden yüklemek için sayfayı yeniden oluştur
+    if (_index == 0) {
+      setState(() {
+        _buildPages();
+      });
+    }
   }
 
   Future<void> _loadPendingCount() async {
@@ -44,14 +54,17 @@ class _AppShellState extends State<AppShell> {
   void _buildPages() {
     _pages = [
       HomeScreen(
-        key: HomeScreen.homeKey,
         isEmbedded: true,
         onNavigateTab: (i) => setState(() => _index = i),
       ),
       MedicationListScreen(
         isEmbedded: true, 
         onBackToHome: () => setState(() => _index = 0),
-        onMedicationUpdated: () => setState(() {}),
+        onMedicationUpdated: () {
+          reloadHomeScreen();
+          _loadPendingCount();
+          setState(() {});
+        },
       ),
       HistoryScreen(isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
       StatisticsScreen(isEmbedded: true, onBackToHome: () => setState(() => _index = 0)),
@@ -121,7 +134,7 @@ class _AppShellState extends State<AppShell> {
                       MaterialPageRoute(builder: (context) => const AddMedicationScreen()),
                     );
                     if (result == true && mounted) {
-                      HomeScreen.homeKey.currentState?.reloadToday();
+                      reloadHomeScreen();
                       await _loadPendingCount();
                       setState(() {});
                     }
