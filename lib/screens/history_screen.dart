@@ -762,7 +762,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(15),
@@ -773,8 +773,11 @@ class _HistoryScreenState extends State<HistoryScreen>
                 style: TextStyle(
                   color: statusColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 10.5,
+                  height: 1.0,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],

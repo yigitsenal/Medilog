@@ -754,23 +754,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(24),
                 onTap: () {},
                 child: Padding(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(icon, color: Colors.white, size: 28),
+                        child: Icon(icon, color: Colors.white, size: 24),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         count.toString(),
                         style: const TextStyle(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 0.5,
@@ -780,11 +780,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       Text(
                         title,
                         textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: Colors.white.withOpacity(0.9),
-                          letterSpacing: 0.3,
+                          letterSpacing: 0.2,
+                          height: 1.0,
                         ),
                       ),
                     ],
@@ -1982,7 +1985,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 10,
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
@@ -1992,14 +1995,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(statusIcon, size: 16, color: accentColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: accentColor,
+                          Icon(statusIcon, size: 14, color: accentColor),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: accentColor,
+                                height: 1.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],
@@ -2222,11 +2230,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             _buildNavItem(
               Icons.list_alt,
-              (Localizations.localeOf(context).languageCode == 'en'
-                  ? 'Meds'
-                  : AppLocalizations.of(
-                      context,
-                    )!.translate('medications_short')),
+              AppLocalizations.of(context)!.translate('medications_short'),
               false,
               () {
                 Navigator.push(
@@ -2282,7 +2286,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
           decoration: BoxDecoration(
             color: isActive
                 ? const Color(0xFF1E88E5).withOpacity(0.1)
@@ -2297,20 +2301,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 color: isActive ? const Color(0xFF1E88E5) : Colors.grey[600],
                 size: 20,
               ),
-              const SizedBox(height: 3),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: isActive
-                        ? const Color(0xFF1E88E5)
-                        : Colors.grey[600],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w600,
+                  color: isActive
+                      ? const Color(0xFF1E88E5)
+                      : Colors.grey[600],
+                  height: 1.0,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.center,
               ),
             ],
           ),

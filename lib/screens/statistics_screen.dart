@@ -222,7 +222,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
               decoration: BoxDecoration(
                 gradient: isSelected
                     ? LinearGradient(
@@ -248,21 +248,24 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 children: [
                   Icon(
                     icon,
-                    size: 20,
+                    size: 18,
                     color: isSelected
                         ? Colors.white
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     title,
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w600,
                       color: isSelected
                           ? Colors.white
                           : Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.1,
                     ),
                   ),
                 ],
@@ -292,7 +295,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             const Color(0xFF2196F3),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: _buildOverviewCard(
             AppLocalizations.of(context)!.translate('taken'),
@@ -301,7 +304,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             const Color(0xFF4CAF50),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: _buildOverviewCard(
             AppLocalizations.of(context)!.translate('compliance'),
@@ -331,7 +334,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           child: Opacity(
             opacity: clampedValue,
             child: Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -355,14 +358,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ],
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [color, color.withOpacity(0.7)],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
                           color: color.withOpacity(0.4),
@@ -371,27 +375,33 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         ),
                       ],
                     ),
-                    child: Icon(icon, color: Colors.white, size: 28),
+                    child: Icon(icon, color: Colors.white, size: 24),
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                      letterSpacing: 1,
+                  const SizedBox(height: 10),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     title,
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.3,
+                      height: 1.2,
                     ),
                   ),
                 ],
