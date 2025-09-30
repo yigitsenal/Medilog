@@ -145,6 +145,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     final action = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -160,7 +161,10 @@ class _MedicationListScreenState extends State<MedicationListScreen>
             Expanded(
               child: Text(
                 AppLocalizations.of(context)!.translate('delete_medication_confirm').replaceFirst('{name}', medication.name),
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
           ],
@@ -170,9 +174,10 @@ class _MedicationListScreenState extends State<MedicationListScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.translate('deletion_options_title'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
@@ -419,6 +424,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
   Widget build(BuildContext context) {
     if (widget.isEmbedded) {
       return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(
             AppLocalizations.of(context)!.translate('medication_list'),
@@ -439,6 +445,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.translate('medication_list')),
       ),
@@ -539,10 +546,10 @@ class _MedicationListScreenState extends State<MedicationListScreen>
           const SizedBox(height: 24),
           Text(
             AppLocalizations.of(context)!.translate('no_medications_added_yet'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -618,11 +625,13 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(
+              Theme.of(context).brightness == Brightness.light ? 0.05 : 0.3,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -680,8 +689,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: medication.isActive
-                                    ? Colors.black87
-                                    : Colors.grey[500],
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

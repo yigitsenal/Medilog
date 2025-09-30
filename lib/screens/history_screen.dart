@@ -437,10 +437,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                   _selectedDateRange != null
                       ? '${DateFormat('d MMM y').format(_selectedDateRange!.start)} - ${DateFormat('d MMM y').format(_selectedDateRange!.end)}'
                       : DateFormat('d MMMM yyyy EEEE', Localizations.localeOf(context).languageCode == 'tr' ? 'tr_TR' : 'en_US').format(_selectedDate),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -648,7 +648,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -719,10 +719,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                 children: [
                   Text(
                     medication.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),

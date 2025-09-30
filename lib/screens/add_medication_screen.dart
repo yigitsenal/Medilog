@@ -399,9 +399,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget _buildForm() {
     return Container(
       margin: const EdgeInsets.only(top: 20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -558,9 +558,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
       ),
       child: TextFormField(
         controller: controller,
@@ -573,8 +575,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
-          labelStyle: TextStyle(color: Colors.grey[700]),
-          hintStyle: TextStyle(color: Colors.grey[500]),
+          labelStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+          ),
         ),
       ),
     );
@@ -583,9 +589,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   Widget _buildFrequencySelector() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
       ),
       child: DropdownButtonFormField<String>(
         value: _frequency,
@@ -617,10 +625,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.translate('usage_times'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             IconButton(
@@ -760,9 +768,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -784,17 +794,20 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               children: [
                 Text(
                   AppLocalizations.of(context)!.translate('continuous_cycle'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   AppLocalizations.of(
                     context,
                   )!.translate('medication_repeats_daily'),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -844,9 +857,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -863,7 +878,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -877,7 +892,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: date != null ? Colors.black87 : Colors.grey[500],
+                color: date != null 
+                    ? Theme.of(context).colorScheme.onSurface 
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
