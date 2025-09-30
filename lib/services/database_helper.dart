@@ -230,6 +230,19 @@ class DatabaseHelper {
     });
   }
 
+  Future<List<MedicationLog>> getLogsByMedicationId(int medicationId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'medication_logs',
+      where: 'medicationId = ?',
+      whereArgs: [medicationId],
+      orderBy: 'scheduledTime ASC',
+    );
+    return List.generate(maps.length, (i) {
+      return MedicationLog.fromMap(maps[i]);
+    });
+  }
+
   Future<List<MedicationLog>> getTodayLogs() async {
     final db = await database;
     final DateTime now = DateTime.now();
@@ -297,6 +310,24 @@ class DatabaseHelper {
   Future<int> deleteMedicationLog(int id) async {
     final db = await database;
     return await db.delete('medication_logs', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Deletes all future logs for a specific medication (keeps past logs for history)
+  Future<void> deleteFutureMedicationLogs(int medicationId) async {
+    final db = await database;
+    final DateTime now = DateTime.now();
+    final DateTime startOfToday = DateTime(now.year, now.month, now.day);
+    
+    // Bugünden itibaren TÜM pending logları sil
+    // Alınmış ve atlanmış loglar korunur (istatistikler için)
+    await db.delete(
+      'medication_logs',
+      where: 'medicationId = ? AND scheduledTime >= ? AND isTaken = 0 AND isSkipped = 0',
+      whereArgs: [
+        medicationId,
+        startOfToday.millisecondsSinceEpoch,
+      ],
+    );
   }
 
   /// Deletes all pending (not taken and not skipped) logs for the given medication
@@ -391,11 +422,11 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> incrementStock(int medicationId, {int by = 1}) async {
+  Future<void> decrementStock(int medicationId, {int by = 1}) async {
     final db = await database;
     final medication = await getMedication(medicationId);
     if (medication != null) {
-      final newStock = medication.stock + by;
+      final newStock = (medication.stock - by).clamp(0, 1 << 31);
       await db.update(
         'medications',
         {'stock': newStock},
@@ -405,11 +436,11 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> decrementStock(int medicationId, {int by = 1}) async {
+  Future<void> incrementStock(int medicationId, {int by = 1}) async {
     final db = await database;
     final medication = await getMedication(medicationId);
     if (medication != null) {
-      final newStock = (medication.stock - by).clamp(0, 1 << 31);
+      final newStock = (medication.stock + by).clamp(0, 1 << 31);
       await db.update(
         'medications',
         {'stock': newStock},

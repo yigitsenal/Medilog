@@ -266,5 +266,9 @@
   "usage_frequency_label": "Kullanım Sıklığı",
   "usage_times_label": "Kullanım Saatleri",
   "stomach_condition_label": "Mide Durumu",
-  "cycle_settings_label": "Döngü Ayarları"
+  "cycle_settings_label": "Döngü Ayarları",
+  "edit_times": "Saatleri Düzenle",
+  "medication_updated": "İlaç başarıyla güncellendi",
+  "undo": "Geri Al",
+  "undo_successful": "Başarıyla geri alındı"
 }

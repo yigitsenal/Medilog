@@ -57,6 +57,20 @@ class NotificationService {
     }
   }
 
+  // İlaca ait tüm bildirimleri iptal et
+  Future<void> cancelMedicationNotifications(int medicationId) async {
+    // Bu ilaca ait tüm gelecekteki logları al
+    final now = DateTime.now();
+    final futureLogs = await _dbHelper.getLogsByMedicationId(medicationId);
+    
+    // Her log için bildirimi iptal et
+    for (var log in futureLogs) {
+      if (log.id != null && log.scheduledTime.isAfter(now)) {
+        await _notifications.cancel(log.id!);
+      }
+    }
+  }
+
   // Yeni metod: Sürekli döngü için günlük ilaç loglarını oluştur
   Future<void> createDailyMedicationLogs({
     String medicationTimeText = 'İlaç Zamanı',
@@ -90,6 +104,18 @@ class NotificationService {
     }
   }
 
+  // Belirli bir ilaç için bugün ve yarın için logları oluştur (güncelleme sonrası)
+  Future<void> createLogsForMedication(Medication medication) async {
+    final DateTime today = DateTime.now();
+    final DateTime tomorrow = today.add(const Duration(days: 1));
+    
+    // Bugün için logları oluştur
+    await _createLogsForDate(medication, today);
+    
+    // Yarın için logları oluştur
+    await _createLogsForDate(medication, tomorrow);
+  }
+
   Future<bool> _checkIfTodayLogsExist(int medicationId, DateTime date) async {
     DateTime startOfDay = DateTime(date.year, date.month, date.day);
     DateTime endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -121,6 +147,21 @@ class NotificationService {
       // İlaç bitiş tarihini kontrol et
       if (medication.endDate != null &&
           scheduledTime.isAfter(medication.endDate!)) {
+        continue;
+      }
+
+      // Bu saatte zaten log var mı kontrol et
+      final existingLogs = await _dbHelper.getLogsByDateRange(
+        scheduledTime,
+        scheduledTime,
+      );
+      
+      // Aynı ilaç ve aynı saat için log varsa skip et
+      final duplicateExists = existingLogs.any((log) => 
+          log.medicationId == medication.id && 
+          log.scheduledTime == scheduledTime);
+      
+      if (duplicateExists) {
         continue;
       }
 

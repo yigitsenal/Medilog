@@ -273,12 +273,26 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
       if (widget.medication == null) {
         await _dbHelper.insertMedication(medication);
+        // Yeni ilaç için logları oluştur
+        await _notificationService.createDailyMedicationLogs();
       } else {
+        // İlaç güncelleniyorsa, önce eski logları ve bildirimleri temizle
+        if (widget.medication!.id != null) {
+          // Bugünden sonraki tüm logları sil (geçmiş kayıtları koru)
+          await _dbHelper.deleteFutureMedicationLogs(widget.medication!.id!);
+          
+          // İlacın tüm bildirimlerini iptal et
+          await _notificationService.cancelMedicationNotifications(widget.medication!.id!);
+        }
+        
         await _dbHelper.updateMedication(medication);
+        
+        // Güncelleme sonrası yeni logları oluştur
+        // Bu sefer medication objesini direkt kullanarak bugün ve yarın için log oluştur
+        if (medication.id != null) {
+          await _notificationService.createLogsForMedication(medication);
+        }
       }
-
-      // Bildirimleri planla
-      await _notificationService.scheduleNotificationForMedication(medication);
 
       if (mounted) {
         Navigator.pop(context, true);

@@ -215,6 +215,52 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _undoLog(MedicationLog log) async {
+    try {
+      // Eğer "alındı" durumundaysa stoku geri ekle
+      if (log.isTaken) {
+        await DatabaseHelper().incrementStock(log.medicationId);
+      }
+
+      // Log'u tekrar "beklemede" durumuna döndür
+      final updatedLog = log.copyWith(
+        isTaken: false,
+        isSkipped: false,
+        takenTime: null,
+      );
+      await _dbHelper.updateMedicationLog(updatedLog);
+      await _loadTodayData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.translate('undo_successful'),
+            ),
+            backgroundColor: Colors.blue,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final body = SafeArea(
@@ -1870,9 +1916,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // Medication details can be shown here
-          },
+          onTap: () => _showQuickEditBottomSheet(medication, log),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -2003,8 +2047,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                   ],
                 ),
+                const SizedBox(height: 15),
                 if (!log.isTaken && !log.isSkipped) ...[
-                  const SizedBox(height: 15),
                   Row(
                     children: [
                       Expanded(
@@ -2046,6 +2090,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ],
+                  ),
+                ] else ...[
+                  // Geri Al butonu - Sadece alınan veya atlanan loglar için
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          (log.isTaken ? Colors.green : Colors.orange)
+                              .withOpacity(0.1),
+                          (log.isTaken ? Colors.green : Colors.orange)
+                              .withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (log.isTaken ? Colors.green : Colors.orange)
+                            .withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _undoLog(log),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.undo,
+                                size: 18,
+                                color: log.isTaken ? Colors.green : Colors.orange,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                AppLocalizations.of(context)!.translate('undo'),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: log.isTaken ? Colors.green : Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -2220,5 +2317,273 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  void _showQuickEditBottomSheet(Medication medication, MedicationLog log) {
+    List<TimeOfDay> currentTimes = medication.times
+        .map((timeString) {
+          final parts = timeString.split(':');
+          return TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
+        })
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.access_time,
+                      color: Colors.blue,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          medication.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.translate('edit_times'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey[100]
+                      : Colors.grey[800],
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
+                  children: currentTimes.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final time = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.grey[600],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, size: 20),
+                            color: Colors.blue,
+                            onPressed: () async {
+                              final newTime = await showTimePicker(
+                                context: context,
+                                initialTime: time,
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      timePickerTheme: TimePickerThemeData(
+                                        backgroundColor: Theme.of(context).cardColor,
+                                        hourMinuteColor: MaterialStateColor.resolveWith(
+                                          (states) => states.contains(MaterialState.selected)
+                                              ? Colors.blue.withOpacity(0.2)
+                                              : Colors.grey.withOpacity(0.1),
+                                        ),
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+
+                              if (newTime != null) {
+                                setState(() {
+                                  currentTimes[index] = newTime;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.translate('cancel'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _updateMedicationTimes(medication, currentTimes);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.translate('save'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateMedicationTimes(
+    Medication medication,
+    List<TimeOfDay> newTimes,
+  ) async {
+    try {
+      // Convert TimeOfDay to String format
+      final timeStrings = newTimes
+          .map((time) =>
+              '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}')
+          .toList();
+
+      // Create updated medication with new times
+      final updatedMedication = Medication(
+        id: medication.id,
+        name: medication.name,
+        dosage: medication.dosage,
+        times: timeStrings,
+        frequency: medication.frequency,
+        startDate: medication.startDate,
+        endDate: medication.endDate,
+        stock: medication.stock,
+        notes: medication.notes,
+        stomachCondition: medication.stomachCondition,
+        isActive: medication.isActive,
+      );
+
+      // Delete future logs for this medication
+      await _dbHelper.deleteFutureMedicationLogs(medication.id!);
+
+      // Cancel existing notifications
+      await _notificationService.cancelMedicationNotifications(medication.id!);
+
+      // Update medication in database
+      await _dbHelper.updateMedication(updatedMedication);
+
+      // Create new logs for updated medication
+      await _notificationService.createLogsForMedication(updatedMedication);
+
+      // Reload data
+      await _loadTodayData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.translate('medication_updated'),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context)!.translate('error')}: $e',
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
   }
 }

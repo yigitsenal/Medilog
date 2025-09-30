@@ -246,5 +246,9 @@
   "usage_times_label": "Usage Times",
   "stomach_condition_label": "Stomach Condition",
   "cycle_settings_label": "Cycle Settings",
-  "deletion_options_title": "Deletion options:"
+  "deletion_options_title": "Deletion options:",
+  "edit_times": "Edit Times",
+  "medication_updated": "Medication updated successfully",
+  "undo": "Undo",
+  "undo_successful": "Undone successfully"
 }
