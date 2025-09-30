@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
 import '../models/medication_stock.dart';
+import '../services/localization_service.dart';
 
 class StockDetailsScreen extends StatefulWidget {
   const StockDetailsScreen({super.key});
@@ -22,7 +23,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Stok Detayları')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.translate('stock_details'))),
       body: FutureBuilder<List<MedicationStock>>(
         future: _future,
         builder: (context, snapshot) {
@@ -31,7 +32,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
           }
           final stocks = snapshot.data!;
           if (stocks.isEmpty) {
-            return const Center(child: Text('Stok kaydı yok'));
+            return Center(child: Text(AppLocalizations.of(context)!.translate('no_stock_records')));
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -46,7 +47,10 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     color: isLow ? Colors.red : Colors.green,
                   ),
                 ),
-                title: Text('İlaç #${s.medicationId} • ${s.currentStock} ${s.unit}'),
+                title: Text(AppLocalizations.of(context)!.translate('medication_stock_info')
+                    .replaceFirst('{id}', s.medicationId.toString())
+                    .replaceFirst('{stock}', s.currentStock.toString())
+                    .replaceFirst('{unit}', s.unit)),
                 subtitle: Text('Min: ${s.minimumStock}  Max: ${s.maximumStock}\nGüncelleme: ${s.lastUpdated.toLocal()}'),
                 isThreeLine: true,
                 trailing: s.expiryDate != null

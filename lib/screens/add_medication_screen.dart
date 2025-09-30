@@ -277,19 +277,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         await _dbHelper.updateMedication(medication);
       }
 
-      // Bugünkü logları yeni saatlere göre senkronize et ve bildirimleri planla
-      await _notificationService.resyncTodaysLogsForMedication(
-        medication,
-        medicationTimeText: AppLocalizations.of(
-          context,
-        )!.translate('medication_time'),
-        onEmptyStomachText: AppLocalizations.of(
-          context,
-        )!.translate('on_empty_stomach'),
-        withFoodText: AppLocalizations.of(
-          context,
-        )!.translate('with_food_notification'),
-      );
+      // Bildirimleri planla
+      await _notificationService.scheduleNotificationForMedication(medication);
 
       if (mounted) {
         Navigator.pop(context, true);

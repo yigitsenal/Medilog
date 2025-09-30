@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('İlaç alındı olarak işaretlendi ✓ (Stok -1)'),
+            content: Text(AppLocalizations.of(context)!.translate('medication_marked_taken_with_stock')),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('İlaç atlandı olarak işaretlendi'),
+            content: Text(AppLocalizations.of(context)!.translate('medication_marked_skipped')),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -191,14 +191,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final gradient = const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF00A8E8), Color(0xFF0077BE), Color(0xFF003459)],
-      ),
-    );
-
     final body = SafeArea(
       child: _isLoading
           ? _buildLoadingScreen()
@@ -212,11 +204,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     if (widget.isEmbedded) {
-      return Scaffold(body: body);
+      return Scaffold(
+        backgroundColor: const Color(0xFFFAFBFC),
+        body: body,
+      );
     }
 
     return Scaffold(
-      body: Container(decoration: gradient, child: body),
+      backgroundColor: const Color(0xFFFAFBFC),
+      body: body,
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNavigationBar(),
@@ -262,32 +258,105 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               builder: (context, snapshot) {
                 final count = snapshot.data ?? 0;
                 if (count <= 0) return const SizedBox.shrink();
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Düşük stok uyarısı: $count ilaç kritik seviyede',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                return TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: 0.9 + (value * 0.1),
+                      child: Opacity(
+                        opacity: value,
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context)!.translate('low_stock_warning'),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      AppLocalizations.of(context)!.translate('medications_critical_level').replaceFirst('{count}', count.toString()),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _openStockDetails(),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.translate('details'),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () => _openStockDetails(),
-                        child: const Text('Detay'),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -319,16 +388,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? 'tr_TR'
         : 'en_US';
     final formatter = DateFormat('d MMMM yyyy, EEEE', locale);
-    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF667EEA),
+            Color(0xFF764BA2),
+          ],
         ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF667EEA).withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,74 +415,175 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.4),
+                    width: 2,
+                  ),
                 ),
-                child: Icon(
-                  Icons.medical_services,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
+                child: const Icon(
+                  Icons.medical_services_rounded,
+                  color: Colors.white,
+                  size: 32,
                 ),
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.translate('medilog'),
+                      _getGreeting(),
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: onSurface,
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.85),
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.translate('your_health_companion'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: onSurface.withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
+                      AppLocalizations.of(context)!.translate('medilog'),
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ),
               ),
+              _buildTimeOfDayIndicator(),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 18),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.calendar_today,
-                  color: Theme.of(context).colorScheme.primary,
+                  Icons.calendar_today_rounded,
+                  color: Colors.white.withOpacity(0.9),
                   size: 18,
                 ),
                 const SizedBox(width: 10),
                 Text(
                   formatter.format(now),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: onSurface,
-                    fontWeight: FontWeight.w500,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return AppLocalizations.of(context)!.translate('good_morning');
+    } else if (hour < 17) {
+      return AppLocalizations.of(context)!.translate('good_afternoon');
+    } else {
+      return AppLocalizations.of(context)!.translate('good_evening');
+    }
+  }
+
+  Widget _buildTimeOfDayIndicator() {
+    final hour = DateTime.now().hour;
+    String emoji;
+    List<Color> gradientColors;
+    String tooltipText;
+    
+    if (hour >= 6 && hour < 12) {
+      // Sabah - Güneş doğuyor
+      emoji = '🌅';
+      gradientColors = [const Color(0xFFFDB813), const Color(0xFFFFD93D)];
+      tooltipText = Localizations.localeOf(context).languageCode == 'tr' ? 'Günaydın!' : 'Good Morning!';
+    } else if (hour >= 12 && hour < 17) {
+      // Öğlen - Güneş tepe noktada
+      emoji = '☀️';
+      gradientColors = [const Color(0xFFFF9800), const Color(0xFFFFB300)];
+      tooltipText = Localizations.localeOf(context).languageCode == 'tr' ? 'İyi Günler!' : 'Good Afternoon!';
+    } else if (hour >= 17 && hour < 20) {
+      // Akşam - Güneş batıyor
+      emoji = '🌇';
+      gradientColors = [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)];
+      tooltipText = Localizations.localeOf(context).languageCode == 'tr' ? 'İyi Akşamlar!' : 'Good Evening!';
+    } else {
+      // Gece - Ay ve yıldızlar
+      emoji = '🌙';
+      gradientColors = [const Color(0xFF667EEA), const Color(0xFF7C8BC9)];
+      tooltipText = Localizations.localeOf(context).languageCode == 'tr' ? 'İyi Geceler!' : 'Good Night!';
+    }
+
+    return Tooltip(
+      message: tooltipText,
+      preferBelow: false,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.elasticOut,
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: 0.7 + (value * 0.3),
+            child: Transform.rotate(
+              angle: (1 - value) * 0.8,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: gradientColors,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradientColors[0].withOpacity(0.5),
+                      blurRadius: 20,
+                      spreadRadius: 3,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    emoji,
+                    style: const TextStyle(
+                      fontSize: 36,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -464,59 +644,85 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildStatCard(String title, int count, Color color, IconData icon) {
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 200),
-      scale: 1.0,
-      curve: Curves.easeOut,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 200),
-        opacity: 1.0,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(
-                  Theme.of(context).brightness == Brightness.light ? 0.1 : 0.5,
-                ),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+    final List<Color> gradientColors;
+    if (color == Colors.green) {
+      gradientColors = [const Color(0xFF11998E), const Color(0xFF38EF7D)];
+    } else if (color == Colors.orange) {
+      gradientColors = [const Color(0xFFFFB75E), const Color(0xFFED8F03)];
+    } else {
+      gradientColors = [const Color(0xFF667EEA), const Color(0xFF764BA2)];
+    }
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: gradientColors,
               ),
-            ],
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: gradientColors.first.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () {},
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        count.toString(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.9),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                count.toString(),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -589,60 +795,93 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Color color,
     VoidCallback onTap,
   ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 150, // Increased height to prevent overflow on some devices
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+    final List<Color> gradientColors;
+    if (color == Colors.teal) {
+      gradientColors = [const Color(0xFF56CCF2), const Color(0xFF2F80ED)];
+    } else if (color == Colors.indigo) {
+      gradientColors = [const Color(0xFF667EEA), const Color(0xFF764BA2)];
+    } else if (color == Colors.purple) {
+      gradientColors = [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)];
+    } else {
+      gradientColors = [const Color(0xFFFFB75E), const Color(0xFFED8F03)];
+    }
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: 0.8 + (value * 0.2),
+          child: Opacity(
+            opacity: value,
+            child: Container(
+              constraints: const BoxConstraints(
+                minHeight: 120,
+                maxHeight: 150,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradientColors,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: gradientColors.first.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
-                  child: Icon(icon, color: color, size: 28),
-                ),
-                const SizedBox(height: 12),
-                Flexible(
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 28),
+                        ),
+                        const SizedBox(height: 10),
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -650,67 +889,202 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     await showModalBottomSheet(
       context: context,
-      useSafeArea: true,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Wrap(
-            runSpacing: 8,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.translate('quick_notification'),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    // Başlık
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF56CCF2), Color(0xFF2F80ED)],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.notifications_active, color: Colors.white, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.translate('quick_notification'),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                Localizations.localeOf(context).languageCode == 'tr'
+                                    ? 'Hızlı hatırlatıcı ayarla'
+                                    : 'Set quick reminder',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Butonlar grid
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.6,
+                      children: [
+                        for (final minutes in [1, 5, 10, 15])
+                          _buildReminderButton(context, minutes),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  for (final minutes in [1, 5, 10, 15])
-                    ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        final now = DateTime.now().add(
-                          Duration(minutes: minutes),
-                        );
-                        await NotificationService().scheduleQuickReminder(
-                          scheduledTime: now,
-                          title: AppLocalizations.of(
-                            context,
-                          )!.translate('quick_notification'),
-                          body: AppLocalizations.of(context)!
-                              .translate('minutes_later')
-                              .replaceFirst('{minutes}', minutes.toString()),
-                        );
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                AppLocalizations.of(context)!
-                                    .translate('minutes_later')
-                                    .replaceFirst(
-                                      '{minutes}',
-                                      minutes.toString(),
-                                    ),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text('+$minutes dk'),
-                    ),
-                ],
-              ),
-            ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildReminderButton(BuildContext context, int minutes) {
+    final gradients = {
+      1: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+      5: [const Color(0xFF56CCF2), const Color(0xFF2F80ED)],
+      10: [const Color(0xFF4CAF50), const Color(0xFF66BB6A)],
+      15: [const Color(0xFFFF9800), const Color(0xFFFFA726)],
+    };
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradients[minutes]!,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: gradients[minutes]![0].withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            Navigator.pop(context);
+            final now = DateTime.now().add(
+              Duration(minutes: minutes),
+            );
+            await NotificationService().scheduleQuickReminder(
+              scheduledTime: now,
+              title: AppLocalizations.of(context)!.translate('quick_notification'),
+              body: AppLocalizations.of(context)!
+                  .translate('minutes_later')
+                  .replaceFirst('{minutes}', minutes.toString()),
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)!
+                              .translate('minutes_later')
+                              .replaceFirst('{minutes}', minutes.toString()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: const Color(0xFF4CAF50),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.alarm_add,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '+$minutes',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'dk'
+                      : 'min',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -721,113 +1095,464 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           content: Text(
             AppLocalizations.of(context)!.translate('no_active_medication'),
           ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
     }
 
-    // İlaç seçme dialog'u
-    final selectedMedication = await showDialog<Medication>(
+    // Modern İlaç seçme bottom sheet
+    final selectedMedication = await showModalBottomSheet<Medication>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          AppLocalizations.of(context)!.translate('select_medication'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _medications.length,
-            itemBuilder: (context, index) {
-              final med = _medications[index];
-              return ListTile(
-                leading: const Icon(Icons.medication),
-                title: Text(med.name),
-                subtitle: Text('Mevcut stok: ${med.stock}'),
-                onTap: () => Navigator.pop(context, med),
-              );
-            },
-          ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 48,
+              height: 5,
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            // Başlık
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.medication, color: Colors.white, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.translate('select_medication'),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          AppLocalizations.of(context)!.translate('stock_adjust'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // İlaç listesi
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: _medications.length,
+                itemBuilder: (context, index) {
+                  final med = _medications[index];
+                  final isLowStock = med.stock <= 3;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isLowStock
+                            ? [const Color(0xFFFF6B6B).withOpacity(0.1), const Color(0xFFFF8E53).withOpacity(0.1)]
+                            : [const Color(0xFF56CCF2).withOpacity(0.1), const Color(0xFF2F80ED).withOpacity(0.1)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isLowStock
+                            ? const Color(0xFFFF6B6B).withOpacity(0.3)
+                            : const Color(0xFF2F80ED).withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pop(context, med),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isLowStock
+                                      ? const Color(0xFFFF6B6B).withOpacity(0.2)
+                                      : const Color(0xFF2F80ED).withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  isLowStock ? Icons.warning_amber : Icons.inventory_2,
+                                  color: isLowStock ? const Color(0xFFFF6B6B) : const Color(0xFF2F80ED),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      med.name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${med.dosage} • ${Localizations.localeOf(context).languageCode == 'tr' ? 'Stok' : 'Stock'}: ${med.stock}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
 
     if (selectedMedication == null) return;
 
-    // Stok güncelleme dialog'u (kapanmadan sayı güncellensin)
-    await showDialog(
+    // Modern stok güncelleme bottom sheet
+    await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (dialogContext) {
         int current = selectedMedication.stock;
         return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text(
-              '${selectedMedication.name} - ${AppLocalizations.of(context)!.translate('update_stock')}',
+          builder: (context, setState) => Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            content: Column(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  AppLocalizations.of(context)!
-                      .translate('current_stock')
-                      .replaceFirst('{count}', current.toString()),
+                // Handle bar
+                Container(
+                  width: 48,
+                  height: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        await DatabaseHelper().decrementStock(
-                          selectedMedication.id!,
-                        );
-                        if (mounted) {
-                          setState(
-                            () => current = (current - 1).clamp(0, 1 << 31),
-                          );
-                          _loadTodayData();
-                        }
-                      },
-                      icon: const Icon(Icons.remove),
-                      label: const Text('-1'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                // Başlık
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(Icons.tune, color: Colors.white, size: 28),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedMedication.name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1A1A1A),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  AppLocalizations.of(context)!.translate('update_stock'),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      // Stok gösterge kartı
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: current <= 3
+                                ? [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)]
+                                : [const Color(0xFF56CCF2), const Color(0xFF2F80ED)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (current <= 3
+                                      ? const Color(0xFFFF6B6B)
+                                      : const Color(0xFF2F80ED))
+                                  .withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              Localizations.localeOf(context).languageCode == 'tr'
+                                  ? 'Mevcut Stok'
+                                  : 'Current Stock',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TweenAnimationBuilder<double>(
+                              key: ValueKey(current),
+                              tween: Tween(begin: 0.8, end: 1.0),
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              builder: (context, scale, child) {
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: Text(
+                                    current.toString(),
+                                    style: const TextStyle(
+                                      fontSize: 56,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              Localizations.localeOf(context).languageCode == 'tr'
+                                  ? 'Adet'
+                                  : 'Units',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // Butonlar
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 64,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFFF6B6B), Color(0xFFEE5A6F)],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () async {
+                                    await DatabaseHelper().decrementStock(
+                                      selectedMedication.id!,
+                                    );
+                                    if (mounted) {
+                                      setState(
+                                        () => current = (current - 1).clamp(0, 1 << 31),
+                                      );
+                                      _loadTodayData();
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.remove_circle_outline, color: Colors.white, size: 28),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        '-1',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Container(
+                              height: 64,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF4CAF50).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () async {
+                                    await DatabaseHelper().incrementStock(
+                                      selectedMedication.id!,
+                                    );
+                                    if (mounted) {
+                                      setState(() => current = current + 1);
+                                      _loadTodayData();
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        '+1',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Kapat butonu
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        await DatabaseHelper().incrementStock(
-                          selectedMedication.id!,
-                        );
-                        if (mounted) {
-                          setState(() => current = current + 1);
-                          _loadTodayData();
-                        }
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text('+1'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.grey[600]),
+                        const SizedBox(width: 8),
+                        Text(
+                          AppLocalizations.of(context)!.translate('close'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(AppLocalizations.of(context)!.translate('close')),
-              ),
-            ],
           ),
         );
       },

@@ -303,16 +303,16 @@ class _HistoryScreenState extends State<HistoryScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'İlaç Geçmişi',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.translate('medication_history'),
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
-                      'İlaç kullanım kayıtlarınız',
+                      AppLocalizations.of(context)!.translate('medication_usage_records'),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.8),

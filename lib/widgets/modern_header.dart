@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../constants/app_theme.dart';
 import '../services/localization_service.dart';
 
 class ModernHeader extends StatelessWidget {
@@ -24,12 +23,25 @@ class ModernHeader extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppTheme.cardShadow,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF667EEA),
+            Color(0xFF764BA2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF667EEA).withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,18 +56,21 @@ class ModernHeader extends StatelessWidget {
                   children: [
                     Text(
                       _getGreeting(context),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.85),
                         fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       userName ?? AppLocalizations.of(context)!.translate('medilog'),
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -66,13 +81,17 @@ class ModernHeader extends StatelessWidget {
                 GestureDetector(
                   onTap: onProfileTap,
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.5,
+                      ),
                     ),
                     child: const Icon(
-                      Icons.person,
+                      Icons.person_rounded,
                       color: Colors.white,
                       size: 24,
                     ),
@@ -80,28 +99,33 @@ class ModernHeader extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.calendar_today,
-                  color: Colors.white70,
-                  size: 16,
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: Colors.white.withOpacity(0.9),
+                  size: 18,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Text(
                   formatter.format(now),
                   style: const TextStyle(
-                    color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
@@ -114,16 +138,34 @@ class ModernHeader extends StatelessWidget {
 
   Widget _buildAppIcon(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withOpacity(0.25),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
+          color: Colors.white.withOpacity(0.4),
+          width: 2,
         ),
       ),
       child: const Icon(
+        Icons.medical_services_rounded,
+        color: Colors.white,
+        size: 32,
+      ),
+    );
+  }
+
+  String _getGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return AppLocalizations.of(context)!.translate('good_morning');
+    } else if (hour < 17) {
+      return AppLocalizations.of(context)!.translate('good_afternoon');
+    } else {
+      return AppLocalizations.of(context)!.translate('good_evening');
+    }
+  }
+}
         Icons.medical_services_rounded,
         color: Colors.white,
         size: 32,

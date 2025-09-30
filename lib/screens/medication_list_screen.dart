@@ -57,8 +57,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     });
 
     try {
-      // Sadece aktif ilaçları yükle
-      final medications = await _dbHelper.getActiveMedications();
+      // Tüm ilaçları yükle (aktif ve pasif)
+      final medications = await _dbHelper.getAllMedications();
       // Ana ekrana haber ver
       widget.onMedicationUpdated?.call();
       setState(() {
@@ -109,8 +109,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
           SnackBar(
             content: Text(
               updatedMedication.isActive
-                  ? 'İlaç aktif edildi'
-                  : 'İlaç devre dışı bırakıldı',
+                  ? AppLocalizations.of(context)!.translate('medication_activated')
+                  : AppLocalizations.of(context)!.translate('medication_deactivated'),
             ),
             backgroundColor: updatedMedication.isActive
                 ? const Color(0xFF00A8E8)
@@ -154,70 +154,163 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.delete, color: Colors.red),
+              child: const Icon(Icons.delete, color: Colors.red, size: 24),
             ),
             const SizedBox(width: 12),
-            const Text('İlaç Sil'),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.translate('delete_medication_confirm').replaceFirst('{name}', medication.name),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${medication.name} ilacını silmek istediğinize emin misiniz?',
-              style: const TextStyle(fontSize: 16),
+              AppLocalizations.of(context)!.translate('deletion_options_title'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Silme seçenekleri:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            // Geçici Silme kartı
+            InkWell(
+              onTap: () => Navigator.pop(context, 'temporary'),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFA726), Color(0xFFFF9800)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.visibility_off,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.translate('temporary_delete'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            AppLocalizations.of(context)!.translate('temporary_delete_description'),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              '• Geçici Sil: İlaç gizlenir, geçmiş veriler korunur',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const Text(
-              '• Kalıcı Sil: İlaç ve tüm veriler tamamen silinir',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            const SizedBox(height: 12),
+            // Kalıcı Silme kartı
+            InkWell(
+              onTap: () => Navigator.pop(context, 'permanent'),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEF5350), Color(0xFFE53935)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.delete_forever,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.translate('permanent_delete'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            AppLocalizations.of(context)!.translate('permanent_delete_description'),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('İptal'),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.orange, Colors.orangeAccent],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextButton(
-              onPressed: () => Navigator.pop(context, 'temporary'),
-              child: const Text(
-                'Geçici Sil',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.red, Colors.redAccent],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextButton(
-              onPressed: () => Navigator.pop(context, 'permanent'),
-              child: const Text(
-                'Kalıcı Sil',
-                style: TextStyle(color: Colors.white),
-              ),
+            child: Text(
+              AppLocalizations.of(context)!.translate('cancel'),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
         ],
@@ -237,8 +330,8 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                'İlaç geçici olarak silindi (geçmiş veriler korundu)',
+              content: Text(
+                AppLocalizations.of(context)!.translate('medication_temporarily_deleted'),
               ),
               backgroundColor: Colors.orange,
               behavior: SnackBarBehavior.floating,
@@ -254,7 +347,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('İlaç kalıcı olarak silindi'),
+              content: Text(AppLocalizations.of(context)!.translate('medication_permanently_deleted')),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -366,7 +459,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         ).then((_) => _loadMedications());
       },
       child: const Icon(Icons.add),
-      tooltip: 'Yeni İlaç Ekle',
+      tooltip: AppLocalizations.of(context)!.translate('add_new_medication_tooltip'),
     );
   }
 
@@ -520,24 +613,25 @@ class _MedicationListScreenState extends State<MedicationListScreen>
 
   Widget _buildMedicationCard(Medication medication, int index) {
     final color = _getMedicationColor(medication);
+    final isLowStock = medication.stock <= 3;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
             Navigator.push(
               context,
@@ -552,354 +646,198 @@ class _MedicationListScreenState extends State<MedicationListScreen>
             });
           },
           child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [color, color.withOpacity(0.7)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        Icons.medication,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // İlaç ikonu
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: medication.isActive
+                        ? color.withOpacity(0.15)
+                        : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.medication_rounded,
+                    color: medication.isActive ? color : Colors.grey[400],
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // İlaç bilgileri
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            medication.name,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: medication.isActive
-                                  ? Colors.black87
-                                  : Colors.grey,
+                          Expanded(
+                            child: Text(
+                              medication.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: medication.isActive
+                                    ? Colors.black87
+                                    : Colors.grey[500],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            AppLocalizations.of(context)!.translate('dosage') +
-                                ': ${medication.dosage}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: medication.isActive
-                                  ? Colors.grey[600]
-                                  : Colors.grey[400],
+                          if (!medication.isActive)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange[100],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'tr'
+                                    ? 'Pasif'
+                                    : 'Inactive',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange[800],
+                                ),
+                              ),
                             ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        medication.dosage,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          // Kullanım sıklığı
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: Colors.grey[500],
                           ),
+                          const SizedBox(width: 4),
                           Text(
                             _getFrequencyText(medication.frequency),
                             style: TextStyle(
-                              fontSize: 14,
-                              color: medication.isActive
-                                  ? color
-                                  : Colors.grey[400],
-                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.inventory,
-                                size: 14,
-                                color: Colors.grey[500],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                AppLocalizations.of(
-                                      context,
-                                    )!.translate('stock') +
-                                    ': ${medication.stock}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: medication.isActive
-                                      ? Colors.grey[600]
-                                      : Colors.grey[400],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 16),
+                          // Stok durumu
+                          Icon(
+                            isLowStock ? Icons.warning_amber_rounded : Icons.inventory_2_outlined,
+                            size: 14,
+                            color: isLowStock
+                                ? Colors.red[400]
+                                : Colors.green[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${medication.stock}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isLowStock
+                                  ? Colors.red[400]
+                                  : Colors.green[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Menü butonu
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: Colors.grey[600], size: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  offset: const Offset(0, 40),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AddMedicationScreen(medication: medication),
+                          ),
+                        ).then((_) {
+                          _loadMedications();
+                          widget.onMedicationUpdated?.call();
+                          HomeScreen.homeKey.currentState?.reloadToday();
+                        });
+                        break;
+                      case 'toggle':
+                        _toggleMedicationStatus(medication);
+                        break;
+                      case 'delete':
+                        _deleteMedication(medication);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18, color: Colors.blue[700]),
+                          const SizedBox(width: 12),
+                          Text(AppLocalizations.of(context)!.translate('edit')),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Row(
+                        children: [
+                          Icon(
+                            medication.isActive
+                                ? Icons.pause_circle_outline
+                                : Icons.play_circle_outline,
+                            size: 18,
+                            color: medication.isActive
+                                ? Colors.orange[700]
+                                : Colors.green[700],
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            AppLocalizations.of(context)!.translate(
+                              medication.isActive ? 'deactivate' : 'activate',
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      icon: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.more_vert, color: Colors.grey[600]),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, size: 18, color: Colors.red[700]),
+                          const SizedBox(width: 12),
+                          Text(
+                            AppLocalizations.of(context)!.translate('delete'),
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ],
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'edit':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddMedicationScreen(medication: medication),
-                              ),
-                            ).then((_) {
-                              _loadMedications();
-                              widget.onMedicationUpdated?.call();
-                              // Force HomeScreen to reload today data
-                              HomeScreen.homeKey.currentState?.reloadToday();
-                            });
-                            break;
-                          case 'toggle':
-                            _toggleMedicationStatus(medication);
-                            break;
-                          case 'delete':
-                            _deleteMedication(medication);
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  color: Colors.blue,
-                                  size: 16,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                AppLocalizations.of(context)!.translate('edit'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'toggle',
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color:
-                                      (medication.isActive
-                                              ? Colors.orange
-                                              : Colors.green)
-                                          .withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(
-                                  medication.isActive
-                                      ? Icons.pause
-                                      : Icons.play_arrow,
-                                  color: medication.isActive
-                                      ? Colors.orange
-                                      : Colors.green,
-                                  size: 16,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                AppLocalizations.of(context)!.translate(
-                                  medication.isActive
-                                      ? 'deactivate'
-                                      : 'activate',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                  size: 16,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.translate('delete'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-
-                if (!medication.isActive) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.pause_circle_outline,
-                          color: Colors.orange,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          AppLocalizations.of(context)!.translate('disabled'),
-                          style: TextStyle(
-                            color: Colors.orange[700],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                if (medication.times.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: Colors.grey[600],
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        AppLocalizations.of(context)!.translate('usage_times'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: medication.times.map((time) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [color.withOpacity(0.8), color],
-                          ),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text(
-                          time,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.restaurant, color: Colors.grey[600], size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getStomachText(medication.stomachCondition),
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    const Spacer(),
-                    if (medication.startDate != null ||
-                        medication.endDate != null) ...[
-                      Icon(
-                        Icons.calendar_today,
-                        color: Colors.grey[600],
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${medication.startDate != null ? '${medication.startDate!.day}/${medication.startDate!.month}' : ''}'
-                        '${medication.startDate != null && medication.endDate != null ? ' - ' : ''}'
-                        '${medication.endDate != null ? '${medication.endDate!.day}/${medication.endDate!.month}' : ''}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ],
-                ),
-
-                if (medication.notes != null &&
-                    medication.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.note, color: Colors.grey[600], size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            medication.notes!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

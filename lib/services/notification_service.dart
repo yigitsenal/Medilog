@@ -49,47 +49,19 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleNotificationForMedication(
-    Medication medication, {
-    String? medicationTimeText,
-    String? onEmptyStomachText,
-    String? withFoodText,
-  }) async {
-    if (!medication.isActive || medication.id == null) return;
+  Future<void> scheduleNotificationForMedication(Medication medication) async {
+    if (!medication.isActive) return;
 
-    final DateTime today = DateTime.now();
-    final bool todayLogsExist = await _checkIfTodayLogsExist(medication.id!, today);
-
-    // Bugün için zaten log varsa yeniden OLUŞTURMA; mevcut gelecekteki loglar için bildirimler zaten planlı.
-    if (!todayLogsExist) {
-      await _createLogsForDate(
-        medication,
-        today,
-        medicationTimeText: medicationTimeText,
-        onEmptyStomachText: onEmptyStomachText,
-        withFoodText: withFoodText,
-      );
-    }
-
-    // Yarın için de hazırlık sadece yoksa oluştur
-    final DateTime tomorrow = today.add(const Duration(days: 1));
-    final bool tomorrowLogsExist = await _checkIfTodayLogsExist(medication.id!, tomorrow);
-    if (!tomorrowLogsExist) {
-      await _createLogsForDate(
-        medication,
-        tomorrow,
-        medicationTimeText: medicationTimeText,
-        onEmptyStomachText: onEmptyStomachText,
-        withFoodText: withFoodText,
-      );
+    for (String timeStr in medication.times) {
+      await _scheduleRepeatingNotification(medication, timeStr);
     }
   }
 
   // Yeni metod: Sürekli döngü için günlük ilaç loglarını oluştur
   Future<void> createDailyMedicationLogs({
-    String? medicationTimeText,
-    String? onEmptyStomachText,
-    String? withFoodText,
+    String medicationTimeText = 'İlaç Zamanı',
+    String onEmptyStomachText = ' - Aç karına',
+    String withFoodText = ' - Tok karına',
   }) async {
     List<Medication> activeMedications = await _dbHelper.getActiveMedications();
     DateTime today = DateTime.now();
@@ -102,13 +74,7 @@ class NotificationService {
 
       if (!todayLogsExist) {
         // Bugün için logları oluştur
-        await _createLogsForDate(
-          medication,
-          today,
-          medicationTimeText: medicationTimeText,
-          onEmptyStomachText: onEmptyStomachText,
-          withFoodText: withFoodText,
-        );
+        await _createLogsForDate(medication, today);
       }
 
       // Yarın için de logları oluştur (önceden hazırlık)
@@ -119,13 +85,7 @@ class NotificationService {
       );
 
       if (!tomorrowLogsExist) {
-        await _createLogsForDate(
-          medication,
-          tomorrow,
-          medicationTimeText: medicationTimeText,
-          onEmptyStomachText: onEmptyStomachText,
-          withFoodText: withFoodText,
-        );
+        await _createLogsForDate(medication, tomorrow);
       }
     }
   }
@@ -141,13 +101,7 @@ class NotificationService {
     return logs.any((log) => log.medicationId == medicationId);
   }
 
-  Future<void> _createLogsForDate(
-    Medication medication,
-    DateTime date, {
-    String? medicationTimeText,
-    String? onEmptyStomachText,
-    String? withFoodText,
-  }) async {
+  Future<void> _createLogsForDate(Medication medication, DateTime date) async {
     if (medication.id == null) return; // Null ID kontrolü
 
     for (String timeStr in medication.times) {
@@ -180,24 +134,15 @@ class NotificationService {
 
       // Sadece gelecekteki zamanlar için bildirim programla
       if (scheduledTime.isAfter(DateTime.now())) {
-        await _scheduleNotificationForLog(
-          medication,
-          log.copyWith(id: logId),
-          medicationTimeText: medicationTimeText,
-          onEmptyStomachText: onEmptyStomachText,
-          withFoodText: withFoodText,
-        );
+        await _scheduleNotificationForLog(medication, log.copyWith(id: logId));
       }
     }
   }
 
   Future<void> _scheduleNotificationForLog(
     Medication medication,
-    MedicationLog log, {
-    String? medicationTimeText,
-    String? onEmptyStomachText,
-    String? withFoodText,
-  }) async {
+    MedicationLog log,
+  ) async {
     if (log.id == null) return; // Null ID kontrolü
 
     try {
@@ -210,10 +155,10 @@ class NotificationService {
       String stomachText = '';
       switch (medication.stomachCondition) {
         case 'empty':
-          stomachText = onEmptyStomachText ?? ' - Aç karına';
+          stomachText = ' - Aç karına';
           break;
         case 'full':
-          stomachText = withFoodText ?? ' - Tok karına';
+          stomachText = ' - Tok karına';
           break;
         default:
           stomachText = '';
@@ -221,7 +166,7 @@ class NotificationService {
 
       await _notifications.zonedSchedule(
         log.id!,
-        medicationTimeText ?? 'İlaç Zamanı',
+        'İlaç Zamanı',
         '${medication.name} - ${medication.dosage}$stomachText',
         scheduledTZ,
         const NotificationDetails(
@@ -248,6 +193,20 @@ class NotificationService {
     }
   }
 
+  Future<void> _scheduleRepeatingNotification(
+    Medication medication,
+    String timeStr,
+  ) async {
+    // Bu metod artık sadece yeni eklenen ilaçlar için kullanılacak
+    // Günlük döngü için createDailyMedicationLogs metodunu kullanacağız
+    DateTime today = DateTime.now();
+    await _createLogsForDate(medication, today);
+
+    // Yarın için de hazırlık
+    DateTime tomorrow = today.add(const Duration(days: 1));
+    await _createLogsForDate(medication, tomorrow);
+  }
+
   Future<void> cancelNotificationsForMedication(int medicationId) async {
     // Get all pending logs for this medication and cancel their notifications
     List<MedicationLog> logs = await _dbHelper.getMedicationLogs(medicationId);
@@ -270,143 +229,48 @@ class NotificationService {
     }
   }
 
-  /// Re-create today's logs for the given medication using its latest definition.
-  /// This keeps past taken/skipped logs intact by removing only pending logs first.
-  Future<void> resyncTodaysLogsForMedication(Medication medication, {
-    String? medicationTimeText,
-    String? onEmptyStomachText,
-    String? withFoodText,
-  }) async {
-    if (medication.id == null) return;
-    final DateTime today = DateTime.now();
-
-    // 1) Fetch today's logs and separate completed vs pending
-    final List<MedicationLog> todaysLogs = await _dbHelper.getLogsForMedicationOnDate(medication.id!, today);
-    final List<MedicationLog> completedLogs = todaysLogs.where((l) => l.isTaken || l.isSkipped).toList();
-    final List<MedicationLog> pendingLogs = todaysLogs.where((l) => !l.isTaken && !l.isSkipped).toList();
-
-    // 1.a) Remap completed logs' scheduled times to the closest new times so UI reflects new schedule
-    if (completedLogs.isNotEmpty && medication.times.isNotEmpty) {
-      // Build candidate DateTimes for today from new times
-      final List<DateTime> newSlots = medication.times.map((t) {
-        final parts = t.split(':');
-        return DateTime(today.year, today.month, today.day, int.parse(parts[0]), int.parse(parts[1]));
-      }).toList()
-        ..sort((a, b) => a.compareTo(b));
-
-      // Greedy matching by nearest time
-      final Set<int> usedIndices = {};
-      for (final log in completedLogs) {
-        int? bestIdx;
-        Duration bestDiff = const Duration(days: 365);
-        for (int i = 0; i < newSlots.length; i++) {
-          if (usedIndices.contains(i)) continue;
-          final diff = (newSlots[i].difference(log.scheduledTime)).abs();
-          if (diff < bestDiff) {
-            bestDiff = diff;
-            bestIdx = i;
-          }
-        }
-        if (bestIdx != null) {
-          usedIndices.add(bestIdx);
-          final desiredTime = newSlots[bestIdx];
-          if (desiredTime != log.scheduledTime) {
-            final updated = log.copyWith(scheduledTime: desiredTime);
-            await _dbHelper.updateMedicationLog(updated);
-          }
-        }
-      }
-    }
-
-    // 2) Cancel notifications for pending logs and delete them
-    for (final log in pendingLogs) {
-      if (log.id != null) {
-        await _notifications.cancel(log.id!);
-      }
-    }
-    await _dbHelper.deletePendingLogsForMedicationOnDate(medication.id!, today);
-
-    // 3) Determine how many logs should exist today according to new definition
-    final int desiredCount = medication.times.length;
-    final int completedCount = completedLogs.length;
-
-    // 4) If today already has enough completed logs, don't create more
-    final int toCreate = (desiredCount - completedCount).clamp(0, desiredCount);
-    if (toCreate == 0) {
-      return;
-    }
-
-    // Create logs only for time slots not already completed (up to toCreate)
-    final Set<String> completedTimeStrings = completedLogs
-        .map((l) => _formatHm(l.scheduledTime))
-        .toSet();
-
-    int created = 0;
-    for (final timeStr in medication.times) {
-      if (created >= toCreate) break;
-      if (completedTimeStrings.contains(timeStr)) continue;
-
-      // Build scheduled time for today
-      final parts = timeStr.split(':');
-      final int hour = int.parse(parts[0]);
-      final int minute = int.parse(parts[1]);
-      final DateTime scheduledTime = DateTime(today.year, today.month, today.day, hour, minute);
-
-      final MedicationLog newLog = MedicationLog(
-        medicationId: medication.id!,
-        scheduledTime: scheduledTime,
-      );
-      final int newId = await _dbHelper.insertMedicationLog(newLog);
-
-      // Schedule notification only for future times
-      if (scheduledTime.isAfter(DateTime.now())) {
-        await _scheduleNotificationForLog(
-          medication,
-          newLog.copyWith(id: newId),
-          medicationTimeText: medicationTimeText,
-          onEmptyStomachText: onEmptyStomachText,
-          withFoodText: withFoodText,
-        );
-      }
-      created++;
-    }
-  }
-
-  String _formatHm(DateTime dt) {
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final mm = dt.minute.toString().padLeft(2, '0');
-    return '$hh:$mm';
-  }
-
-  // Hızlı tek seferlik hatırlatıcı (yalnızca bildirim gösterir)
+  // Schedule a quick reminder notification
   Future<void> scheduleQuickReminder({
     required DateTime scheduledTime,
-    String title = 'Hatırlatıcı',
-    String body = 'İlaç hatırlatıcısı',
+    required String title,
+    required String body,
   }) async {
-    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
-    await _notifications.zonedSchedule(
-      tzTime.millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      tzTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'quick_reminders',
-          'Quick Reminders',
-          channelDescription: 'Single-shot reminders',
-          importance: Importance.high,
-          priority: Priority.high,
+    try {
+      // Convert to TZDateTime
+      tz.TZDateTime scheduledTZ = tz.TZDateTime.from(
+        scheduledTime,
+        tz.local,
+      );
+
+      // Use a unique ID based on timestamp to avoid conflicts
+      int notificationId = scheduledTime.millisecondsSinceEpoch % 100000000;
+
+      await _notifications.zonedSchedule(
+        notificationId,
+        title,
+        body,
+        scheduledTZ,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'quick_reminders',
+            'Quick Reminders',
+            channelDescription: 'Quick reminder notifications',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      // Error scheduling quick reminder
+      rethrow;
+    }
   }
 }

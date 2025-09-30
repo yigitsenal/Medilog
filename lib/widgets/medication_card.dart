@@ -28,202 +28,244 @@ class MedicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: _getBorder(context),
+      decoration: BoxDecoration(
+        gradient: _getGradient(),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: _getShadowColor().withOpacity(0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _buildStatusIcon(context),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          medicationName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: _getTextColor(context),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _buildAnimatedIcon(context),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicationName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
                           ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  dosage,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                frequency,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!isTaken) _buildActionButtons(context),
+                  ],
+                ),
+                if (nextDose != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isOverdue
+                              ? Icons.warning_amber_rounded
+                              : Icons.schedule_rounded,
+                          size: 18,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(width: 8),
                         Text(
-                          '$dosage • $frequency',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          nextDose!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  _buildActionButtons(context),
                 ],
-              ),
-              if (nextDose != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _getNextDoseBackgroundColor(context),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 16,
-                        color: _getNextDoseTextColor(context),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        nextDose!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _getNextDoseTextColor(context),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusIcon(BuildContext context) {
-    IconData icon;
-    Color backgroundColor;
-    Color iconColor;
-
+  LinearGradient _getGradient() {
     if (isTaken) {
-      icon = Icons.check_circle;
-      backgroundColor = Theme.of(context).colorScheme.primary.withOpacity(0.1);
-      iconColor = Theme.of(context).colorScheme.primary;
-    } else if (isOverdue) {
-      icon = Icons.warning_rounded;
-      backgroundColor = Colors.red.withOpacity(0.1);
-      iconColor = Colors.red;
-    } else if (isUpcoming) {
-      icon = Icons.schedule;
-      backgroundColor = Colors.orange.withOpacity(0.1);
-      iconColor = Colors.orange;
-    } else {
-      icon = Icons.medication;
-      backgroundColor = Theme.of(context).colorScheme.surfaceContainer;
-      iconColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+      return const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF11998E), Color(0xFF38EF7D)],
+      );
     }
+    if (isOverdue) {
+      return const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+      );
+    }
+    if (isUpcoming) {
+      return const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFB75E), Color(0xFFED8F03)],
+      );
+    }
+    return const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+    );
+  }
 
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(
-        icon,
-        size: 24,
-        color: iconColor,
-      ),
+  Color _getShadowColor() {
+    if (isTaken) return const Color(0xFF11998E);
+    if (isOverdue) return const Color(0xFFFF6B6B);
+    if (isUpcoming) return const Color(0xFFFFB75E);
+    return const Color(0xFF667EEA);
+  }
+
+  Widget _buildAnimatedIcon(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withOpacity(0.4),
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              isTaken
+                  ? Icons.check_circle_rounded
+                  : isOverdue
+                      ? Icons.error_outline_rounded
+                      : Icons.medication_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    if (isTaken) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          'Alındı',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w600,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (onMarkTaken != null)
+          _buildActionButton(
+            icon: Icons.check_rounded,
+            color: Colors.white,
+            onPressed: onMarkTaken!,
+          ),
+        if (onMarkSkipped != null) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.close_rounded,
+            color: Colors.white.withOpacity(0.7),
+            onPressed: onMarkSkipped!,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.white.withOpacity(0.25),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            icon,
+            color: color,
+            size: 22,
           ),
         ),
-      );
-    }
-
-    if (isOverdue || isUpcoming) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (onMarkSkipped != null)
-            GestureDetector(
-              onTap: onMarkSkipped,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-          const SizedBox(width: 8),
-          if (onMarkTaken != null)
-            GestureDetector(
-              onTap: onMarkTaken,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-        ],
-      );
-    }
-
-    return const SizedBox.shrink();
+      ),
+    );
   }
-
-  Border? _getBorder(BuildContext context) {
-    if (isOverdue) {
-      return Border.all(color: Colors.red.withOpacity(0.3), width: 1);
-    } else if (isUpcoming) {
-      return Border.all(color: Colors.orange.withOpacity(0.3), width: 1);
-    } else if (isTaken) {
-      return Border.all(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-        width: 1,
-      );
-    }
-    return null;
-  }
-
-  Color _getTextColor(BuildContext context) {
-    if (isOverdue) {
-      return Colors.red.shade700;
-    } else if (isTaken) {
-      return Theme.of(context).colorScheme.primary;
-    }
+}
     return Theme.of(context).colorScheme.onSurface;
   }
 

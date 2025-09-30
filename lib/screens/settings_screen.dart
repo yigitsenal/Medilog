@@ -121,14 +121,14 @@ class _SettingsScreenState extends State<SettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
+            child: Text(AppLocalizations.of(context)!.translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
               openAppSettings();
               Navigator.pop(context);
             },
-            child: const Text('Ayarları Aç'),
+            child: Text(AppLocalizations.of(context)!.translate('open_settings')),
           ),
         ],
       ),
@@ -190,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ayarlar yüklenirken hata oluştu: $e'),
+            content: Text(AppLocalizations.of(context)!.translate('settings_load_error').replaceFirst('{error}', e.toString())),
             backgroundColor: Colors.red,
           ),
         );
