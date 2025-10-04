@@ -90,8 +90,8 @@ dependencies:
   # Google AdMob
   google_mobile_ads: ^4.0.0
 
-  # Background tasks - removed workmanager due to compatibility issues
-  # workmanager: ^0.5.2
+  # Background tasks
+  android_alarm_manager_plus: ^4.0.4
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@ import 'services/notification_service.dart';
 import 'services/settings_service.dart';
 import 'services/localization_service.dart';
 import 'services/location_service.dart';
+import 'services/background_service.dart';
 import 'screens/app_shell.dart';
 
 void main() async {
@@ -21,6 +22,12 @@ void main() async {
 
   // Request notification permissions
   await _requestNotificationPermissions();
+
+  // Initialize background service for daily tasks
+  await BackgroundService.initialize();
+
+  // Schedule daily background task
+  await BackgroundService.scheduleDailyTask();
 
   // Initialize notifications
   NotificationService notificationService = NotificationService();
@@ -59,7 +66,7 @@ Future<void> _initializeLocationService() async {
   try {
     final locationService = LocationService();
     final isEnabled = await locationService.isGeofenceEnabled();
-    
+
     if (isEnabled) {
       // Konum izinlerini kontrol et
       final locationPermission = await Permission.location.status;

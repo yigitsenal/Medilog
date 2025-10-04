@@ -7,6 +7,8 @@ import '../services/localization_service.dart';
 import '../main.dart';
 
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onSettingsChanged;
@@ -60,8 +62,12 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _toggleGeofence(bool value) async {
     if (value) {
+      print('🔐 Konum izinleri kontrol ediliyor...');
+
       // Konum iznini kontrol et
       var locationStatus = await Permission.location.status;
+      print('📍 Konum izni: $locationStatus');
+
       if (locationStatus.isDenied || locationStatus.isPermanentlyDenied) {
         _showPermissionDialog(
           'Konum İzni Gerekiyor',
@@ -70,9 +76,33 @@ class _SettingsScreenState extends State<SettingsScreen>
         return;
       }
 
-      // Fiziksel aktivite iznini kontrol et (Android)
+      // Android 10+ için arka plan konum izni
       if (Theme.of(context).platform == TargetPlatform.android) {
+        var backgroundLocationStatus = await Permission.locationAlways.status;
+        print('📍 Arka plan konum izni: $backgroundLocationStatus');
+
+        if (backgroundLocationStatus.isDenied) {
+          // İzni iste
+          backgroundLocationStatus = await Permission.locationAlways.request();
+
+          if (backgroundLocationStatus.isDenied ||
+              backgroundLocationStatus.isPermanentlyDenied) {
+            _showPermissionDialog(
+              'Arka Plan Konum İzni Gerekiyor',
+              'Uygulama kapalıyken evden ayrıldığınızı tespit edebilmek için "Her zaman izin ver" seçeneğini seçmelisiniz.',
+            );
+            return;
+          }
+        }
+
+        // Fiziksel aktivite iznini kontrol et
         var activityStatus = await Permission.activityRecognition.status;
+        print('🏃 Fiziksel aktivite izni: $activityStatus');
+
+        if (activityStatus.isDenied) {
+          activityStatus = await Permission.activityRecognition.request();
+        }
+
         if (activityStatus.isPermanentlyDenied) {
           _showPermissionDialog(
             'Fiziksel Aktivite İzni',
@@ -81,6 +111,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           return;
         }
       }
+
+      print('✅ Tüm izinler verildi, geofence başlatılıyor...');
     }
 
     try {
@@ -93,19 +125,22 @@ class _SettingsScreenState extends State<SettingsScreen>
           SnackBar(
             content: Text(
               value
-                  ? 'Konum hatırlatıcısı açıldı.'
+                  ? 'Konum hatırlatıcısı açıldı. ${value ? "Eve 500m uzaklaştığınızda bildirim alacaksınız." : ""}'
                   : 'Konum hatırlatıcısı kapatıldı.',
             ),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
     } catch (e) {
+      print('❌ Geofence toggle hatası: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('İşlem başarısız: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -128,7 +163,9 @@ class _SettingsScreenState extends State<SettingsScreen>
               openAppSettings();
               Navigator.pop(context);
             },
-            child: Text(AppLocalizations.of(context)!.translate('open_settings')),
+            child: Text(
+              AppLocalizations.of(context)!.translate('open_settings'),
+            ),
           ),
         ],
       ),
@@ -139,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() {
       _isSettingHome = true;
     });
-    
+
     // Loading dialog göster
     if (mounted) {
       showDialog(
@@ -184,7 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
-    
+
     try {
       await _locationService.setHomeLocation();
       if (mounted) {
@@ -246,7 +283,11 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('settings_load_error').replaceFirst('{error}', e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!
+                  .translate('settings_load_error')
+                  .replaceFirst('{error}', e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -504,6 +545,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 }
               },
+            ),
+            // --- GEOFENCE DURUM KONTROLÜ ---
+            _buildListTile(
+              'Geofence Durumunu Kontrol Et',
+              'Konum, izinler ve uzaklığı kontrol et',
+              Icons.bug_report,
+              _checkGeofenceStatus,
             ),
           ],
         ),
@@ -1087,5 +1135,129 @@ class _SettingsScreenState extends State<SettingsScreen>
         backgroundColor: Colors.orange,
       ),
     );
+  }
+
+  // Geofence durumunu kontrol et
+  Future<void> _checkGeofenceStatus() async {
+    try {
+      print('\n🔍 ===== GEOFENCE DURUM KONTROLÜ =====');
+
+      final prefs = await SharedPreferences.getInstance();
+      final homeLatitude = prefs.getDouble('home_latitude');
+      final homeLongitude = prefs.getDouble('home_longitude');
+      final isEnabled = _isGeofenceEnabled;
+
+      print(
+        '📍 Ev Konumu: ${homeLatitude != null ? "✅ Kayıtlı ($homeLatitude, $homeLongitude)" : "❌ Kayıtlı değil"}',
+      );
+      print('🔘 Geofence Durumu: ${isEnabled ? "✅ Aktif" : "❌ Kapalı"}');
+
+      // İzin durumlarını önce kontrol et
+      final locationPermission = await Permission.location.status;
+      final backgroundLocationPermission =
+          await Permission.locationAlways.status;
+      final activityPermission = await Permission.activityRecognition.status;
+
+      print('\n🔐 İzin Durumları:');
+      print('  📍 Konum: $locationPermission');
+      print('  📍 Arka Plan Konum: $backgroundLocationPermission');
+      print('  🏃 Fiziksel Aktivite: $activityPermission');
+
+      // Konum izni varsa ve ev konumu kayıtlıysa mesafe hesapla
+      if (homeLatitude != null && homeLongitude != null) {
+        if (locationPermission.isGranted) {
+          try {
+            // Konum servisinin açık olup olmadığını kontrol et
+            final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+            if (!serviceEnabled) {
+              print(
+                '⚠️ Konum servisi kapalı. Lütfen telefon ayarlarından konumu açın.',
+              );
+            } else {
+              // Mevcut konumu al (timeout ile)
+              final position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.medium,
+                timeLimit: const Duration(seconds: 10),
+              );
+
+              final distance = Geolocator.distanceBetween(
+                homeLatitude,
+                homeLongitude,
+                position.latitude,
+                position.longitude,
+              );
+
+              print(
+                '📱 Şu anki konum: (${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)})',
+              );
+              print('📏 Eve uzaklık: ${distance.toStringAsFixed(0)} metre');
+              print('🎯 Geofence yarıçapı: 500 metre');
+
+              if (distance > 500) {
+                print(
+                  '✅ Evden 500m+ uzaktasınız - Çıkış bildirimi GÖNDERİLMELİ',
+                );
+              } else {
+                print('🏠 Ev içerisindesiniz - Bildirim gönderilmemeli');
+              }
+            }
+          } catch (e) {
+            print('⚠️ Konum alınamadı: $e');
+            print('   Konum servisinin açık olduğundan emin olun.');
+          }
+        } else {
+          print('⚠️ Konum izni verilmemiş. Mesafe hesaplanamıyor.');
+        }
+      }
+
+      print('\n💡 Öneriler:');
+      if (homeLatitude == null || homeLongitude == null) {
+        print('  ⚠️  "Ev Konumunu Ayarla" butonuna tıklayın');
+      }
+      if (!isEnabled) {
+        print('  ⚠️  "Evden Ayrılırken Hatırlat" anahtarını açın');
+      }
+      if (!locationPermission.isGranted) {
+        print('  ⚠️  Konum izni verin');
+      }
+      if (backgroundLocationPermission != PermissionStatus.granted) {
+        print(
+          '  ⚠️  Arka plan konum iznini "Her zaman izin ver" olarak ayarlayın',
+        );
+      }
+      if (homeLatitude != null &&
+          homeLongitude != null &&
+          isEnabled &&
+          backgroundLocationPermission == PermissionStatus.granted) {
+        print(
+          '  ✅ Her şey hazır! Evden 500m+ uzaklaştığınızda bildirim almalısınız.',
+        );
+      }
+
+      print('===================================\n');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Geofence durumu console\'da gösteriliyor. Detaylar için logları kontrol edin.',
+            ),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Geofence durum kontrolü hatası: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Konum kontrolü başarısız: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }

@@ -10,8 +10,10 @@ class LocationService {
   factory LocationService() => _instance;
 
   late final GeofenceService _geofenceService;
+  late final FlutterLocalNotificationsPlugin _notificationsPlugin;
   bool _isServiceRunning = false;
   bool _listenersAdded = false;
+  bool _notificationsInitialized = false;
 
   final _geofenceList = <Geofence>[];
   final _controller = StreamController<Geofence>.broadcast();
@@ -24,6 +26,7 @@ class LocationService {
   Stream<Geofence> get geofenceStream => _controller.stream;
 
   LocationService._internal() {
+    _notificationsPlugin = FlutterLocalNotificationsPlugin();
     _geofenceService = GeofenceService.instance.setup(
       interval: 5000,
       accuracy: 100,
@@ -31,10 +34,32 @@ class LocationService {
       statusChangeDelayMs: 10000,
       useActivityRecognition: true,
       allowMockLocations: false,
-      printDevLog: false,
+      printDevLog: true, // Debug için true yaptık
       geofenceRadiusSortType: GeofenceRadiusSortType.DESC,
     );
+    _initializeNotifications();
     _addListeners();
+  }
+
+  Future<void> _initializeNotifications() async {
+    if (_notificationsInitialized) return;
+
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notificationsPlugin.initialize(settings);
+    _notificationsInitialized = true;
+    print('✅ Location notification service initialized');
   }
 
   void _addListeners() {
@@ -51,35 +76,64 @@ class LocationService {
 
   Future<void> start() async {
     if (_isServiceRunning) {
-      print("Geofence service is already running.");
+      print("⚠️ Geofence servisi zaten çalışıyor.");
       return;
     }
 
+    print('🚀 Geofence servisi başlatılıyor...');
+
     await _updateGeofence();
     if (_geofenceList.isEmpty) {
+      print('❌ Ev konumu ayarlanmamış!');
       throw ('Ev konumu ayarlanmamış. Lütfen önce ev konumunuzu ayarlayın.');
     }
 
     try {
       await _geofenceService.start(_geofenceList);
       _isServiceRunning = true;
-      print("Geofence service started successfully.");
+      print("✅ Geofence servisi başarıyla başlatıldı!");
+      print("📍 İzlenen bölge sayısı: ${_geofenceList.length}");
+
+      // Mevcut konumu logla
+      try {
+        final position = await gl.Geolocator.getCurrentPosition();
+        print("📍 Mevcut konum: ${position.latitude}, ${position.longitude}");
+
+        // Ev konumuna olan mesafeyi hesapla
+        if (_geofenceList.isNotEmpty) {
+          final home = _geofenceList.first;
+          final distance = gl.Geolocator.distanceBetween(
+            home.latitude,
+            home.longitude,
+            position.latitude,
+            position.longitude,
+          );
+          print("📏 Eve uzaklık: ${distance.toStringAsFixed(0)}m");
+
+          if (distance > 500) {
+            print("⚠️ ŞU ANDA EV DIŞINDASINIZ! (>500m)");
+          } else {
+            print("✅ Şu anda ev içindesiniz (<500m)");
+          }
+        }
+      } catch (e) {
+        print("⚠️ Mevcut konum alınamadı: $e");
+      }
     } catch (e) {
-      print("Error starting geofence service: $e");
-      _isServiceRunning = false; // Başlatma başarısız olursa durumu sıfırla
-      // Hatanın UI tarafından yakalanabilmesi için tekrar fırlat
+      print("❌ Geofence servisi başlatma hatası: $e");
+      _isServiceRunning = false;
       throw e;
     }
   }
 
   Future<void> stop() async {
     if (!_isServiceRunning) {
-      print("Geofence service is not running.");
+      print("⚠️ Geofence servisi zaten durdurulmuş.");
       return;
     }
     await _geofenceService.stop();
     _isServiceRunning = false;
-    print("Geofence service stopped.");
+    print("🛑 Geofence servisi durduruldu.");
   }
 
   Future<void> toggleGeofence(bool value) async {
@@ -99,12 +153,18 @@ class LocationService {
     GeofenceStatus geofenceStatus,
     Location location,
   ) async {
-    print('geofence: ${geofence.toJson()}');
-    print('geofenceStatus: ${geofenceStatus.toString()}');
+    print('🌍 Geofence: ${geofence.toJson()}');
+    print('📍 Status: ${geofenceStatus.toString()}');
+    print('📏 Radius: ${geofenceRadius.id} - ${geofenceRadius.length}m');
     _controller.sink.add(geofence);
 
     if (geofenceStatus == GeofenceStatus.EXIT) {
+      print('🚪 EVDEN ÇIKIŞ TESPİT EDİLDİ! Bildirim gönderiliyor...');
       await _sendExitNotification();
+    } else if (geofenceStatus == GeofenceStatus.ENTER) {
+      print('🏠 EVE GİRİŞ TESPİT EDİLDİ');
+    } else if (geofenceStatus == GeofenceStatus.DWELL) {
+      print('⏸️ GEOFENCE İÇİNDE BEKLEME');
     }
   }
 
@@ -115,35 +175,54 @@ class LocationService {
   }
 
   Future<void> _sendExitNotification({String? title, String? body}) async {
-    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'geofence_notifications',
-      'Geofence Notifications',
-      channelDescription: 'Notifications for geofence events',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const notificationDetails = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-    );
-    await flutterLocalNotificationsPlugin.show(
-      123, // Benzersiz bir id
-      title ?? _notificationTitle,
-      body ?? _notificationBody,
-      notificationDetails,
-    );
+    print('📬 Evden çıkış bildirimi gönderiliyor...');
+
+    try {
+      const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'geofence_notifications',
+        'Konum Hatırlatıcıları',
+        channelDescription: 'Evden ayrılırken ilaç hatırlatması',
+        importance: Importance.max,
+        priority: Priority.max,
+        enableVibration: true,
+        playSound: true,
+        visibility: NotificationVisibility.public,
+      );
+      const iosPlatformChannelSpecifics = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+      );
+      const notificationDetails = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iosPlatformChannelSpecifics,
+      );
+
+      await _notificationsPlugin.show(
+        12345, // Benzersiz bir id
+        title ?? _notificationTitle,
+        body ?? _notificationBody,
+        notificationDetails,
+      );
+
+      print('✅ Evden çıkış bildirimi başarıyla gönderildi!');
+    } catch (e) {
+      print('❌ Bildirim gönderme hatası: $e');
+    }
   }
 
   void _onLocationChanged(Location location) {
-    // print('location: ${location.toJson()}');
+    print('📍 Konum güncellendi: ${location.latitude}, ${location.longitude}');
   }
 
   void _onLocationServicesStatusChanged(bool status) {
-    print('locationServicesStatus: $status');
+    print('🔧 Konum servisleri durumu: ${status ? "AÇIK" : "KAPALI"}');
   }
 
   void _onActivityChanged(Activity prevActivity, Activity currActivity) {
-    print('currActivity: ${currActivity.toJson()}');
+    print('🏃 Aktivite değişti: ${prevActivity.type} → ${currActivity.type}');
+    print('   Güven: ${currActivity.confidence}%');
   }
 
   void _onError(error) {
@@ -195,14 +274,23 @@ class LocationService {
 
     _geofenceList.clear();
     if (lat != null && lng != null) {
+      print('🏠 Ev konumu: $lat, $lng');
+      print('📏 Geofence yarıçapı: 500m'); // Test için artırdık
+
       _geofenceList.add(
         Geofence(
           id: 'home',
           latitude: lat,
           longitude: lng,
-          radius: [GeofenceRadius(id: 'home_radius', length: 200)],
+          radius: [
+            GeofenceRadius(id: 'home_radius_500m', length: 500), // 200m → 500m
+          ],
         ),
       );
+
+      print('✅ Geofence güncellendi: ${_geofenceList.length} bölge');
+    } else {
+      print('⚠️ Ev konumu henüz ayarlanmamış!');
     }
   }
 

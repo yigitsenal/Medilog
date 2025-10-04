@@ -250,5 +250,16 @@
   "edit_times": "Edit Times",
   "medication_updated": "Medication updated successfully",
   "undo": "Undo",
-  "undo_successful": "Undone successfully"
+  "undo_successful": "Undone successfully",
+  "add": "Add",
+  "quick_operations": "Quick Actions",
+  "add_medication_title": "Add Medication",
+  "add_new_medication_record": "Create new medication record",
+  "quick_reminder_1min": "Quick Reminder (1 min)",
+  "reminder_in_1_minute": "Reminder in 1 minute",
+  "quick_reminder": "Quick Reminder",
+  "reminder_set_for_1_minute": "Reminder set for 1 minute",
+  "emergency_info": "Emergency Info",
+  "emergency_contact_numbers": "Emergency contact numbers",
+  "emergency_112": "Emergency: 112 - Emergency Health Services"
 }

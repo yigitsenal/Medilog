@@ -62,7 +62,7 @@ class NotificationService {
     // Bu ilaca ait tüm gelecekteki logları al
     final now = DateTime.now();
     final futureLogs = await _dbHelper.getLogsByMedicationId(medicationId);
-    
+
     // Her log için bildirimi iptal et
     for (var log in futureLogs) {
       if (log.id != null && log.scheduledTime.isAfter(now)) {
@@ -77,6 +77,7 @@ class NotificationService {
     String onEmptyStomachText = ' - Aç karına',
     String withFoodText = ' - Tok karına',
   }) async {
+    print('🔄 Günlük ilaç logları oluşturuluyor...');
     List<Medication> activeMedications = await _dbHelper.getActiveMedications();
     DateTime today = DateTime.now();
 
@@ -88,6 +89,7 @@ class NotificationService {
 
       if (!todayLogsExist) {
         // Bugün için logları oluştur
+        print('📝 ${medication.name} için bugün logları oluşturuluyor...');
         await _createLogsForDate(medication, today);
       }
 
@@ -99,19 +101,65 @@ class NotificationService {
       );
 
       if (!tomorrowLogsExist) {
+        print('📝 ${medication.name} için yarın logları oluşturuluyor...');
         await _createLogsForDate(medication, tomorrow);
       }
     }
+
+    // Mevcut loglar için bildirimlerin zamanlanıp zamanlanmadığını kontrol et
+    await _verifyScheduledNotifications();
+
+    print('✅ Günlük log oluşturma tamamlandı');
+  }
+
+  // Yeni metod: Mevcut loglar için bildirimlerin olup olmadığını kontrol et
+  Future<void> _verifyScheduledNotifications() async {
+    print('🔍 Bildirimleri doğrulanıyor...');
+
+    // Bugünden itibaren gelecekteki tüm logları al
+    final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 2));
+    final logs = await _dbHelper.getLogsByDateRange(now, tomorrow);
+
+    // Bekleyen bildirimleri al
+    final pendingNotifications = await _notifications
+        .pendingNotificationRequests();
+    final pendingIds = pendingNotifications.map((n) => n.id).toSet();
+
+    print('📊 Toplam log sayısı: ${logs.length}');
+    print('📊 Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+
+    // Alınmamış ve atlanmamış loglar için bildirimleri kontrol et
+    for (var log in logs) {
+      if (log.id == null || log.isTaken || log.isSkipped) continue;
+      if (log.scheduledTime.isBefore(now)) continue; // Geçmiş logları atla
+
+      // Bu log için bildirim var mı?
+      if (!pendingIds.contains(log.id)) {
+        print(
+          '⚠️ Eksik bildirim bulundu! Log ID: ${log.id}, Zaman: ${log.scheduledTime}',
+        );
+
+        // İlacı bul ve bildirimi yeniden zamanla
+        final medication = await _dbHelper.getMedication(log.medicationId);
+        if (medication != null) {
+          await _scheduleNotificationForLog(medication, log);
+          print('🔧 Bildirim yeniden zamanlandı: ${medication.name}');
+        }
+      }
+    }
+
+    print('✅ Bildirim doğrulama tamamlandı');
   }
 
   // Belirli bir ilaç için bugün ve yarın için logları oluştur (güncelleme sonrası)
   Future<void> createLogsForMedication(Medication medication) async {
     final DateTime today = DateTime.now();
     final DateTime tomorrow = today.add(const Duration(days: 1));
-    
+
     // Bugün için logları oluştur
     await _createLogsForDate(medication, today);
-    
+
     // Yarın için logları oluştur
     await _createLogsForDate(medication, tomorrow);
   }
@@ -133,8 +181,10 @@ class NotificationService {
     for (String timeStr in medication.times) {
       // Parse time string (assuming format like "08:00")
       List<String> timeParts = timeStr.split(':');
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
+      if (timeParts.length != 2) continue; // Geçersiz format
+
+      int hour = int.tryParse(timeParts[0]) ?? 0;
+      int minute = int.tryParse(timeParts[1]) ?? 0;
 
       DateTime scheduledTime = DateTime(
         date.year,
@@ -155,12 +205,14 @@ class NotificationService {
         scheduledTime,
         scheduledTime,
       );
-      
+
       // Aynı ilaç ve aynı saat için log varsa skip et
-      final duplicateExists = existingLogs.any((log) => 
-          log.medicationId == medication.id && 
-          log.scheduledTime == scheduledTime);
-      
+      final duplicateExists = existingLogs.any(
+        (log) =>
+            log.medicationId == medication.id &&
+            log.scheduledTime == scheduledTime,
+      );
+
       if (duplicateExists) {
         continue;
       }
@@ -176,6 +228,13 @@ class NotificationService {
       // Sadece gelecekteki zamanlar için bildirim programla
       if (scheduledTime.isAfter(DateTime.now())) {
         await _scheduleNotificationForLog(medication, log.copyWith(id: logId));
+        print(
+          '📅 Log oluşturuldu ve bildirim zamanlandı: ${medication.name} - $scheduledTime',
+        );
+      } else {
+        print(
+          '⏭️ Geçmiş log oluşturuldu (bildirim yok): ${medication.name} - $scheduledTime',
+        );
       }
     }
   }
@@ -187,11 +246,28 @@ class NotificationService {
     if (log.id == null) return; // Null ID kontrolü
 
     try {
-      // Convert to TZDateTime
-      tz.TZDateTime scheduledTZ = tz.TZDateTime.from(
-        log.scheduledTime,
-        tz.local,
+      // Geçmiş zaman kontrolü - sadece gelecekteki zamanlar için bildirim
+      if (log.scheduledTime.isBefore(DateTime.now())) {
+        print('⏰ Bildirim zamanlanamadı: Geçmiş zaman (${log.scheduledTime})');
+        return;
+      }
+
+      // Convert to TZDateTime - local timezone kullan
+      final location = tz.local;
+      tz.TZDateTime scheduledTZ = tz.TZDateTime(
+        location,
+        log.scheduledTime.year,
+        log.scheduledTime.month,
+        log.scheduledTime.day,
+        log.scheduledTime.hour,
+        log.scheduledTime.minute,
       );
+
+      // Double-check: TZDateTime gelecekte mi?
+      if (scheduledTZ.isBefore(tz.TZDateTime.now(location))) {
+        print('⏰ Bildirim zamanlanamadı: TZDateTime geçmiş (${scheduledTZ})');
+        return;
+      }
 
       String stomachText = '';
       switch (medication.stomachCondition) {
@@ -215,13 +291,17 @@ class NotificationService {
             'medication_reminders',
             'Medication Reminders',
             channelDescription: 'Notifications for medication reminders',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+            enableVibration: true,
+            playSound: true,
+            visibility: NotificationVisibility.public,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
+            interruptionLevel: InterruptionLevel.timeSensitive,
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -229,7 +309,10 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: log.id.toString(),
       );
+
+      print('✅ Bildirim zamanlandı: ${medication.name} - ${scheduledTZ}');
     } catch (e) {
+      print('❌ Bildirim zamanlama hatası: $e');
       // Error scheduling notification
     }
   }
@@ -278,9 +361,14 @@ class NotificationService {
   }) async {
     try {
       // Convert to TZDateTime
-      tz.TZDateTime scheduledTZ = tz.TZDateTime.from(
-        scheduledTime,
-        tz.local,
+      final location = tz.local;
+      tz.TZDateTime scheduledTZ = tz.TZDateTime(
+        location,
+        scheduledTime.year,
+        scheduledTime.month,
+        scheduledTime.day,
+        scheduledTime.hour,
+        scheduledTime.minute,
       );
 
       // Use a unique ID based on timestamp to avoid conflicts
@@ -296,8 +384,63 @@ class NotificationService {
             'quick_reminders',
             'Quick Reminders',
             channelDescription: 'Quick reminder notifications',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+            enableVibration: true,
+            playSound: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.timeSensitive,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+
+      print('✅ Hızlı hatırlatıcı zamanlandı: $scheduledTZ');
+    } catch (e) {
+      print('❌ Hızlı hatırlatıcı hatası: $e');
+      // Error scheduling quick reminder
+      rethrow;
+    }
+  }
+
+  // Debug metodu: Bekleyen bildirimleri listele
+  Future<void> printPendingNotifications() async {
+    try {
+      final pendingNotifications = await _notifications
+          .pendingNotificationRequests();
+      print('📋 Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+      for (var notification in pendingNotifications) {
+        print(
+          '   - ID: ${notification.id}, Title: ${notification.title}, Body: ${notification.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Bekleyen bildirimler alınamadı: $e');
+    }
+  }
+
+  // Test bildirimi gönder (anında)
+  Future<void> sendTestNotification() async {
+    try {
+      await _notifications.show(
+        999999,
+        'Test Bildirimi',
+        'Bildirimler çalışıyor! ✅',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'test_channel',
+            'Test Notifications',
+            channelDescription: 'Test notifications',
+            importance: Importance.max,
+            priority: Priority.max,
+            enableVibration: true,
+            playSound: true,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -305,13 +448,10 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
+      print('✅ Test bildirimi gönderildi');
     } catch (e) {
-      // Error scheduling quick reminder
-      rethrow;
+      print('❌ Test bildirimi hatası: $e');
     }
   }
 }
